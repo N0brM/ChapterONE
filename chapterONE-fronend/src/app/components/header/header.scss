@@ -1,0 +1,27 @@
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 90px; 
+  padding: 0 40px;
+  background-color: #6161a0; 
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 100;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    .logo-text { 
+        color: #fff; 
+        font-size: 1.6rem; 
+        font-weight: 700;
+    }
+  }
+
+  .user-profile {
+    .username { color: #e0e0e0; font-weight: 500; }
+    .avatar { border: 2px solid #191970; }
+  }
+}

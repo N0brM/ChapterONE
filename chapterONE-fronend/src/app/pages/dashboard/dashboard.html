@@ -1,0 +1,15 @@
+<div class="app-layout">
+  <app-header></app-header>
+
+  <div class="main-workspace">
+    <app-sidebar></app-sidebar>
+
+    <main class="content-scroll-area">
+      <div class="projects-grid">
+        @for (proj of myProjects; track proj.id) {
+          <app-project-card [project]="proj"></app-project-card>
+        }
+      </div>
+    </main>
+  </div>
+</div>

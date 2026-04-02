@@ -1,0 +1,83 @@
+.writing-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f4f4f7;
+  display: flex;
+  flex-direction: column;
+  z-index: 10000;
+
+  .editor-toolbar {
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px;
+
+    .nav-group, .format-group, .status-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .divider-v { width: 1px; height: 24px; background: #eee; margin: 0 5px; }
+
+    .icon-btn { 
+      background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; 
+      &:hover { color: #0a0a23; }
+    }
+
+    .doc-title { font-weight: 600; color: #191970; font-size: 0.95rem; }
+
+    .tool-btn {
+      background: none; border: none; width: 32px; height: 32px;
+      border-radius: 4px; cursor: pointer; color: #555;
+      &:hover { background: #f0f2f5; }
+    }
+
+    .word-count { font-size: 0.8rem; color: #999; }
+    
+    .save-indicator {
+      background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+      padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    }
+  }
+
+  .canvas {
+    flex: 1;
+    overflow-y: auto;
+    padding: 60px 20px;
+    display: flex;
+    justify-content: center;
+
+    .paper {
+      width: 100%;
+      max-width: 800px;
+      min-height: 1000px;
+      background: white;
+      padding: 80px 100px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      border-radius: 4px;
+
+      .chapter-headline {
+        font-family: 'Georgia', serif;
+        font-size: 2.5rem;
+        margin-bottom: 50px;
+        color: #1a1a1a;
+      }
+
+      .placeholder-text {
+        font-family: 'Georgia', serif;
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: #333;
+        
+        p { margin-bottom: 20px; }
+      }
+    }
+  }
+}
