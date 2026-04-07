@@ -1,0 +1,6 @@
+@ChapterONE.API_HostAddress = http://localhost:5043
+
+GET {{ChapterONE.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
