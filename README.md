@@ -1,63 +1,61 @@
-# ChapterONE
-<<<<<<< HEAD
+# ✍️ ChapterONE
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.14.
+> [cite_start]**Tecnologia > Inovação > Criatividade** [cite: 14, 35]
 
-## Development server
+[cite_start]O **ChapterONE** é uma aplicação web colaborativa concebida para a gestão e edição partilhada de projetos de escrita ou produção criativa[cite: 15, 71]. [cite_start]A plataforma permite que vários autores trabalhem simultaneamente no mesmo ambiente, unindo organização e produtividade[cite: 16, 64].
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## 🚀 Funcionalidades Principais
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- [cite_start]**Edição Colaborativa em Tempo Real:** Permite a escrita simultânea por vários autores[cite: 16, 101].
+- [cite_start]**Identificação Visual:** Os textos são destacados por cores consoante o autor, facilitando a identificação das contribuições[cite: 54, 75].
+- [cite_start]**Gestão de Projetos (Dashboard):** Interface central para visualizar, criar, editar e eliminar projetos[cite: 17, 106].
+- [cite_start]**Organização Estruturada:** Projetos divididos por capítulos, episódios ou secções[cite: 45, 104].
+- [cite_start]**Assistente de Escrita (IA):** Integração de Inteligência Artificial para correções gramaticais e sugestões de melhoria[cite: 63, 111].
+- [cite_start]**Análise de Texto Automática:** Estatísticas sobre número de palavras, tempo de leitura estimado e emoção predominante no conteúdo[cite: 63, 76, 110].
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🛠️ Stack Tecnológica
 
-```bash
-ng generate component component-name
-```
+[cite_start]O projeto segue uma arquitetura moderna com separação entre **Frontend** e **Backend**[cite: 79].
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### **Backend (API)**
 
-```bash
-ng generate --help
-```
+- [cite_start]**Linguagem:** C# (.NET Core / ASP.NET)[cite: 81].
+- [cite_start]**Base de Dados:** SQL Server ou MongoDB[cite: 85, 86].
+- [cite_start]**Ferramentas:** Visual Studio 2022 e Postman[cite: 87, 94].
 
-## Building
+### **Frontend (Interface)**
 
-To build the project run:
+- [cite_start]**Framework:** Angular (HTML, CSS, TypeScript)[cite: 83].
+- [cite_start]**Editor de Código:** Visual Studio Code[cite: 95].
+- [cite_start]**Design:** Figma[cite: 97].
 
-```bash
-ng build
-```
+### **Controlo de Versão**
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+- [cite_start]Git e GitHub para histórico de alterações e trabalho conjunto[cite: 96, 121].
 
-## Running unit tests
+---
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 📅 Planeamento (Roadmap)
 
-```bash
-ng test
-```
+1.  [cite_start]**Fase 1: Planeamento e Análise** (Out-Nov) - Definição da arquitetura e conceitos de UI[cite: 114, 115].
+2.  [cite_start]**Fase 2: Desenvolvimento Backend** (Dez-Jan) - Implementação da API em .NET[cite: 122, 123].
+3.  [cite_start]**Fase 3: Frontend e Integração IA** (Fev-Mar) - Desenvolvimento da interface em Angular e integração das funcionalidades inteligentes[cite: 124, 125].
+4.  [cite_start]**Fase 4: Documentação e Finalização** (Abril) - Conclusão de toda a documentação do projeto[cite: 126, 127].
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+## 👤 Autor
 
-```bash
-ng e2e
-```
+- [cite_start]**Nome:** Miguel Nobre [cite: 7]
+- [cite_start]**Curso:** Técnico de Gestão e Programação de Sistemas Informáticos [cite: 3]
+- [cite_start]**Escola:** Digital Escola Profissional [cite: 1]
+- [cite_start]**Triénio:** 2023-2026 [cite: 9]
+- [cite_start]**Projeto:** Prova de Aptidão Profissional (PAP) [cite: 2]
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-=======
-PAP
->>>>>>> 3683ed37691ccce5bbb187bf2ef436e432b3d1d3
+© 2025 - ChapterONE
