@@ -12,5 +12,13 @@ namespace ChapterONE.API.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Chapter> Chapters { get; set; }
         public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ProjectCollaborator>()
+                .HasKey(pc => new { pc.ProjectId, pc.UserId });
+                  
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
