@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WritingSpace } from './writing-space';
+import { WritingSpaceComponent } from './writing-space.component';
 
-describe('WritingSpace', () => {
-  let component: WritingSpace;
-  let fixture: ComponentFixture<WritingSpace>;
+describe('WritingSpaceComponent', () => {
+  let component: WritingSpaceComponent;
+  let fixture: ComponentFixture<WritingSpaceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WritingSpace]
+      imports: [WritingSpaceComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(WritingSpace);
+    fixture = TestBed.createComponent(WritingSpaceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
