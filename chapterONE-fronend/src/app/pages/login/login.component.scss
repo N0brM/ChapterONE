@@ -2,11 +2,15 @@
 $primary-color: #4f46e5; //nunca mudei tantas vezes uma cor
 $primary-hover: #4338ca;
 $bg-color: #f3f4f6;
-$text-color: #374151;
 $card-bg: #ffffff;
 
+$text-color: #374151;
+$text-muted: #6b7280;
+$input-bg: #f9fafb;
+$input-border: #d1d5db;
+
 .login-container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -19,7 +23,7 @@ $card-bg: #ffffff;
     background-color: $card-bg;
     border-radius: 0.75rem;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); //stack overflow veio no clutch
-    padding: 2rem;
+    padding: 2.5rem 2rem;
 
     .login-header {
       text-align: center;
@@ -33,59 +37,78 @@ $card-bg: #ffffff;
       }
 
       p {
-        color: #6b7280;
+        color: $text-muted;
+        font-size: 0.95rem;
       }
     }
 
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
+      gap: 1.5rem;
+
+      .form-group
+      {
+        display:flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
 
       label {
         font-size: 0.875rem;
-        font-weight: 500;
+        font-weight: 600;
         color: $text-color;
+        text-align: center;
       }
 
       input {
         padding: 0.75rem 1rem;
-        background-color: #f9fafb;
-        border: 1px solid #d1d5db;
+        background-color: $input-bg;
+        border: 1px solid $input-border;
         border-radius: 0.5rem;
-        transition: border-color 0.2s;
-        &:focus {
+        transition: all 0.2s ease-in-out;
+        text-align: center;
+        &::placeholder
+        {
+          color:#9ca3af;
+        }
+        &:focus 
+        {
           outline: none;
           border-color: $primary-color;
           box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+          background-color: #ffffff;
         }
       }
     }
 
     .btn-login {
-      padding: 0.75rem;
+      padding: 0.85rem;
       background-color: $primary-color;
       color: white; //:D
       border: none;
       border-radius: 0.5rem;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
       transition: background-color 0.2s;
+      margin-top: 0.5rem;
       &:hover {
-        background-color: $primary-color;
+        background-color: $primary-hover;
       }
     }
   }
 
   .login-footer {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     text-align: center;
     font-size: 0.875rem;
+    color: $text-muted;
 
     a {
       color: $primary-color;
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
       &:hover {
         text-decoration: underline;
       }
