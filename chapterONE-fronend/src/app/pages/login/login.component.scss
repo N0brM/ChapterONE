@@ -9,13 +9,27 @@ $text-muted: #6b7280;
 $input-bg: #f9fafb;
 $input-border: #d1d5db;
 
+$error-color: #ef4444;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+}
+
 .login-container {
   height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: $bg-color;
   padding: 1rem;
+  overflow: hidden;
 
   .login-card {
     max-width: 400px;
@@ -47,9 +61,8 @@ $input-border: #d1d5db;
       flex-direction: column;
       gap: 1.5rem;
 
-      .form-group
-      {
-        display:flex;
+      .form-group {
+        display: flex;
         flex-direction: column;
         gap: 0.4rem;
       }
@@ -68,16 +81,24 @@ $input-border: #d1d5db;
         border-radius: 0.5rem;
         transition: all 0.2s ease-in-out;
         text-align: center;
-        &::placeholder
-        {
-          color:#9ca3af;
+        &::placeholder {
+          color: #9ca3af;
         }
-        &:focus 
-        {
+        &:focus {
           outline: none;
           border-color: $primary-color;
           box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
           background-color: #ffffff;
+        }
+
+        &.input-error {
+          border-color: $error-color;
+          background-color: rgba($error-color, 0.05);
+
+          &:focus {
+            border-color: $error-color;
+            box-shadow: 0 0 0 3px rgba($error-color, 0.2);
+          }
         }
       }
     }

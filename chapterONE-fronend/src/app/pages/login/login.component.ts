@@ -14,6 +14,7 @@ import { response } from 'express';
 })
 export class LoginComponent {
   loginData = { username: '', passwordHash: '' };
+  loginError: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -21,6 +22,7 @@ export class LoginComponent {
   ) {}
 
   onLogin() {
+    this.loginError = false;
     console.log('ao menos ta a tentar :D', this.loginData);
 
     this.authService.login(this.loginData).subscribe({
@@ -30,11 +32,8 @@ export class LoginComponent {
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
+        this.loginError = true;
         console.error('erro no login:', err);
-        alert(
-          'Erro no login: ' +
-            (err.error?.message || 'Credenciais inválidas ou erro de ligação à API.'),
-        );
       },
     });
   }
