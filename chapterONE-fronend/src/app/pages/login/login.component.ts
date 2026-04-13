@@ -25,7 +25,15 @@ export class LoginComponent {
     this.loginError = false;
     console.log('ao menos ta a tentar :D', this.loginData);
 
-    this.authService.login(this.loginData).subscribe({
+    const loginPayload = 
+    {
+      Username: this.loginData.username,
+      PasswordHash: this.loginData.passwordHash,
+      Email: "default@email.com",
+      OwnedProjects: []
+    };
+
+    this.authService.login(loginPayload).subscribe({
       next: (response: any) => {
         console.log('Sucesso', response);
         this.authService.saveUserData(response);
@@ -34,6 +42,15 @@ export class LoginComponent {
       error: (err) => {
         this.loginError = true;
         console.error('erro no login:', err);
+
+        if(err.status === 200 || err.status === 201) 
+        {
+          this.router.navigate(['/dashboard']);
+        }
+        else
+        {
+          alert('Erro no login: verifica as credenciais')
+        }
       },
     });
   }

@@ -1,0 +1,172 @@
+$primary-color: #4f46e5;
+$primary-hover: #4338ca;
+$bg-color: #f3f4f6;
+$text-color: #374151;
+$text-muted: #6b7280;
+$card-bg: #ffffff;
+$border-color: #e5e7eb;
+$input-bg: #f9fafb;
+$error-color: #ef4444;
+
+.register-container
+{
+    min-height: 100vh;
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $bg-color;
+    padding: 1rem;
+    font-family:'Inter', 'Segoe UI', system-ui, sans-serif;
+
+    .register-card
+    {
+        max-width: 420px;
+        width: 100%;
+        background-color: $card-bg;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 2.5rem;
+
+        .register-header
+        {
+            text-align: center;
+            margin-bottom: 2rem;
+
+            h1
+            {
+                font-size: 2.25rem;
+                font-weight: 800;
+                color: $primary-color;
+                margin-bottom: 0.5rem;
+                margin-top: 0;
+                letter-spacing: -0.025rem;
+            }
+
+            p
+            {
+                color: $text-muted;
+                font-size: 0.95rem;
+                margin: 0;
+            }
+        }
+
+        .register-form
+        {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+
+            .form-group
+            {
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
+
+                .error-message 
+                {
+                    color: $error-color;
+                    font-size: 0.75rem;
+                    font-weight: 500;
+                    margin-top: 0.25rem;
+                    display: block;
+
+                    //n sou mt bom nisto entao yahhh
+                    animation: fadeIn 0.2s ease-in;
+                }
+
+                input.ng-invalid.ng-touched
+                {
+                    border-color: $error-color;
+                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+                }
+
+                @keyframes fadeIn
+                {
+                    from { opacity: 0; transform: translateY(-5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                
+                label
+                {
+                    font-size: 0.875rem;
+                    font-weight: 600;
+                    color: $text-color;
+                }
+
+                input
+                {
+                    padding: 0.75rem 1rem;
+                    background-color: $input-bg;
+                    border: 1px solid $border-color;
+                    border-radius: 0.6rem;
+                    transition: all 0.2s, box-shadow 0.2s;
+
+                    &::placeholder
+                    {
+                        color: #9ca3af;
+                    }
+
+                    &:focus
+                    {
+                        outline: none;
+                        border-color: $primary-color;
+                        background-color: #fff;
+                        box-shadow: 0 0 0 4px rgba($primary-color, 0.15);
+                    }
+                }
+            }
+
+
+            .btn-register 
+            {
+                padding:0.8rem 1rem;
+                background-color: $primary-color;
+                color: white;
+                border: none;
+                border-radius: 0.6rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-size: 1rem;
+                margin-top: 0.75rem;
+
+                &:hover
+                {
+                    background-color: $primary-hover;
+                    box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+                    transform: translateY(-1px);
+                }
+
+                &:active
+                {
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        .register-footer
+        {
+            margin-top: 1.75rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color:$text-muted;
+
+            a
+            {
+                color: $primary-color;
+                text-decoration: none;
+                font-weight: 600;
+                transition: color 0.2s;
+
+                &:hover
+                {
+                    text-decoration: underline;
+                }
+            }
+        }
+
+        input.ng-invalid.ng-touched {
+            border-color: #ef4444; // Vermelho se estiver errado
+        }
+    }
+}
