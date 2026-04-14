@@ -5,6 +5,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ProjectDetailsComponent } from './pages/project-details/project-details.component';
 import { WritingSpaceComponent } from './pages/writing-space/writing-space.component';
 
+
 export const routes: Routes = [
     {path: '', redirectTo: 'login', pathMatch: 'full'},
     {path: 'login', component: LoginComponent},

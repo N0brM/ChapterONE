@@ -36,20 +36,29 @@ export class LoginComponent {
     this.authService.login(loginPayload).subscribe({
       next: (response: any) => {
         console.log('Sucesso', response);
-        this.authService.saveUserData(response);
+        this.authService.saveUserData({
+          userId: '1',
+          username: this.loginData.username
+        });
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loginError = true;
         console.error('erro no login:', err);
 
-        if(err.status === 200 || err.status === 201) 
-        {
+        if (err.status === 200 || err.status === 201) {
+          console.log('Login bem-sucedido');
+          this.authService.saveUserData({ 
+            userId: '1', 
+            username: this.loginData.username 
+          });
           this.router.navigate(['/dashboard']);
         }
         else
         {
-          alert('Erro no login: verifica as credenciais')
+          this.loginError = true;
+          console.error('Erro real no login:', err);
+          alert('Credenciais inválidas.');
         }
       },
     });

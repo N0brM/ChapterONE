@@ -1,1 +1,90 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <nav class="navbar">
+    <a (click)="showGrid()" class="logo" style="cursor: pointer">ChapterONE</a>
+    <div class="user-menu">
+      <span>Olá, {{username}}</span>
+      <button (click)="onLogout()" class="btn-logout">Sair</button>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <!-- Lista dos projetos -->
+    <div *ngIf="viewMode === 'grid'">
+      <div class="header-section">
+        <h2>Os Meus Projetos</h2>
+        <button (click)="showNewProjectForm()" class="btn-new-project">
+          <span>+ Novo Livro</span>
+        </button>
+      </div>
+
+      <div class="projects-grid" *ngIf="projects.length > 0; else emptyState">
+        <div
+          class="project-card"
+          *ngFor="let project of projects"
+          (click)="openProject(project.id)"
+        >
+          <div class="project-info">
+            <h3>{{project.title}}</h3>
+            <p>{{project.description || 'Sem descrição disponível'}}</p>
+          </div>
+          <div class="project-footer">
+            <span class="chapters-count">{{ project.chaptersCount || 0 }} Capítulos</span>
+            <span class="last-edit">Atualizado recentemente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Obrigado a quem me sugeriu e ensinou isto -->
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <h3>Ainda não tens nenhum projeto</h3>
+          <p>Começa a escrever a tua próxima grande história agora mesmo!</p>
+          <button (click)="showNewProjectForm()" class="btn-new-project">
+            <span>Criar Primeiro Livro</span>
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- New projeto -->
+    <div *ngIf="viewMode === 'form'" class="form-view">
+      <div class="form-card">
+        <div class="header">
+          <h2>Criar Novo Projeto</h2>
+          <p>Preenche os detalhes da tua próxima grande história.</p>
+        </div>
+
+        <form (submit)="onCreateProject()" class="project-form">
+          <div class="form-group">
+            <label for="title">Título do Projeto</label>
+            <input
+              type="text"
+              id="title"
+              [(ngModel)]="newProjectData.title"
+              name="title"
+              placeholder="Ex: O senhor sem aneis"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Descrição</label>
+            <textarea
+              id="description"
+              [(ngModel)]="newProjectData.description"
+              name="description"
+              placeholder="Sobre o que é este livro"
+            ></textarea>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn-cancel" (click)="showGrid()">Cancelar</button>
+            <button type="submit" class="btn-submit" [disabled]="!newProjectData.title">
+              Criar Projeto
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>

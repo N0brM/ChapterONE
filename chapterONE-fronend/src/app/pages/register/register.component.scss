@@ -16,7 +16,6 @@ $error-color: #ef4444;
     justify-content: center;
     background-color: $bg-color;
     padding: 1rem;
-    font-family:'Inter', 'Segoe UI', system-ui, sans-serif;
 
     .register-card
     {
@@ -60,7 +59,9 @@ $error-color: #ef4444;
             {
                 display: flex;
                 flex-direction: column;
-                gap: 0.4rem;
+                align-items: center;
+                gap: 0.5rem;
+                width: 100%;
 
                 .error-message 
                 {
@@ -69,6 +70,7 @@ $error-color: #ef4444;
                     font-weight: 500;
                     margin-top: 0.25rem;
                     display: block;
+                    text-align: center;
 
                     //n sou mt bom nisto entao yahhh
                     animation: fadeIn 0.2s ease-in;
@@ -91,6 +93,7 @@ $error-color: #ef4444;
                     font-size: 0.875rem;
                     font-weight: 600;
                     color: $text-color;
+                    text-align: center;
                 }
 
                 input
@@ -99,7 +102,12 @@ $error-color: #ef4444;
                     background-color: $input-bg;
                     border: 1px solid $border-color;
                     border-radius: 0.6rem;
+                    text-align: center;
                     transition: all 0.2s, box-shadow 0.2s;
+
+                    width:100%;
+                    max-width:320px;
+                    box-sizing: border-box;
 
                     &::placeholder
                     {
