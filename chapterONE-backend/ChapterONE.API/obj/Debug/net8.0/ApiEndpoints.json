@@ -9,21 +9,11 @@
     "Parameters": [
       {
         "Name": "loginDto",
-        "Type": "ChapterONE.API.Models.User",
+        "Type": "ChapterONE.API.Models.LoginRequest",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "System.String",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "ChapterONE.API.Controllers.AuthController",
@@ -227,13 +217,13 @@
   {
     "ContainingType": "ChapterONE.API.Controllers.ProjectsController",
     "Method": "GetUserProjects",
-    "RelativePath": "api/Projects/user/{userId}",
+    "RelativePath": "api/Projects/user/{ownerId}",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "userId",
+        "Name": "ownerId",
         "Type": "System.Int32",
         "IsRequired": true
       }

@@ -62,41 +62,24 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/LoginRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
@@ -284,14 +267,14 @@
         }
       }
     },
-    "/api/Projects/user/{userId}": {
+    "/api/Projects/user/{ownerId}": {
       "get": {
         "tags": [
           "Projects"
         ],
         "parameters": [
           {
-            "name": "userId",
+            "name": "ownerId",
             "in": "path",
             "required": true,
             "schema": {
@@ -474,6 +457,20 @@
           },
           "Project": {
             "$ref": "#/components/schemas/Project"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "Username": {
+            "type": "string",
+            "nullable": true
+          },
+          "PasswordHash": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

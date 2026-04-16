@@ -16,13 +16,11 @@ namespace ChapterONE.API.Controllers
             _context = context;
         }
 
-        //lista de projetos onde o utilizador é o dono
-        [HttpGet("user/{userId}")]
-        public async Task<ActionResult<IEnumerable<Project>>> GetUserProjects(int userId)
+        [HttpGet("user/{ownerId}")]
+        public async Task<ActionResult<IEnumerable<Project>>> GetUserProjects(int ownerId)
         {
             return await _context.Projects
-                .Include(p => p.Chapters)
-                .Where(p => p.OwnerId == userId)
+                .Where(p => p.OwnerId == ownerId)
                 .ToListAsync();
         }
 

@@ -2,7 +2,7 @@
   <nav class="navbar">
     <a (click)="showGrid()" class="logo" style="cursor: pointer">ChapterONE</a>
     <div class="user-menu">
-      <span>Olá, {{username}}</span>
+      <span>Olá, {{ username }}</span>
       <button (click)="onLogout()" class="btn-logout">Sair</button>
     </div>
   </nav>
@@ -18,14 +18,10 @@
       </div>
 
       <div class="projects-grid" *ngIf="projects.length > 0; else emptyState">
-        <div
-          class="project-card"
-          *ngFor="let project of projects"
-          (click)="openProject(project.id)"
-        >
+        <div class="project-card" *ngFor="let project of projects" (click)="openProject(project)">
           <div class="project-info">
-            <h3>{{project.title}}</h3>
-            <p>{{project.description || 'Sem descrição disponível'}}</p>
+            <h3>{{ project.Title }}</h3>
+            <p>{{ project.Description || 'Sem descrição disponível' }}</p>
           </div>
           <div class="project-footer">
             <span class="chapters-count">{{ project.chaptersCount || 0 }} Capítulos</span>
@@ -84,6 +80,76 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- VISTA 3: DETALHES DO PROJETO (Certifica-te que selectedProject existe) -->
+    <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
+      <aside class="sidebar">
+        <div class="cover-placeholder"></div>
+        <h2 class="project-title">{{ selectedProject.Title }}</h2>
+        <p class="written-by">Escrito por: {{ username }}</p>
+
+        <div class="stats">
+          <p><strong>Colaboradores:</strong> {{ selectedProject.Collaborators?.length || 'unknown' }}</p>
+          <p><strong>Criado em:</strong> {{ selectedProject.CreatedAt || 'unknown' }}</p>
+        </div>
+
+        <button class="btn-back" (click)="showGrid()">Voltar</button>
+      </aside>
+
+      <section class="chapters-section">
+        <h3>Selecione o seu capítulo</h3>
+
+        <div class="chapters-list">
+          <div class="chapter-item" *ngFor="let chapter of selectedProject.Chapters; let i = index">
+            <span class="chapter-name"
+              >Chapter {{ chapter.Number || i + 1 }} - "{{ chapter.Title }}"</span
+            >
+            <div class="chapter-actions">
+              <button class="btn-edit" (click)="editChapter(chapter)">edit</button>
+              <span class="divider">|</span>
+              <button class="btn-delete" (click)="deleteChapter(chapter)">delete</button>
+            </div>
+          </div>
+
+          <div class="empty-chapters" *ngIf="!selectedProject.Chapters?.length">
+            <p>Ainda não tens capítulos neste projeto.</p>
+          </div>
+        </div>
+
+        <button class="btn-add-chapter" (click)="openAddChapterModal()">+</button>
+      </section>
+    </div>
+
+    <div class="modal-overlay" *ngIf="showChapterModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Novo Capítulo</h3>
+          <p>Define o nome e a ordem do teu capítulo.</p>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nome do Capítulo</label>
+            <input
+              type="text"
+              [(ngModel)]="newChapterData.title"
+              placeholder="Ex: O Início de Tudo"
+            />
+          </div>
+          <div class="form-group">
+            <label>Número do Capítulo</label>
+            <input type="number" [(ngModel)]="newChapterData.number" placeholder="Ex: 1" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeChapterModal()">Cancelar</button>
+          <button class="btn-save" (click)="onSaveChapter()" [disabled]="!newChapterData.title">
+            Adicionar
+          </button>
+        </div>
       </div>
     </div>
   </main>

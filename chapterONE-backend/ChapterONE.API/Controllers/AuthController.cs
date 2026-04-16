@@ -39,21 +39,26 @@ namespace ChapterONE.API.Controllers
 
         //este aqui é pro login
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(User loginDto) 
+        public async Task<ActionResult> Login(LoginRequest loginDto)
         {
             var user = await _Context.Users.FirstOrDefaultAsync(u => u.Username == loginDto.Username);
-            if(user == null)
+            if (user == null)
             {
-                return BadRequest("Inválido");
+                return BadRequest("Utilizador não encontrado");
             }
 
             bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(loginDto.PasswordHash, user.PasswordHash);
-            if (!isPasswordCorrect) 
+            if (!isPasswordCorrect)
             {
-                return BadRequest("Inválido");
+                return BadRequest("Palavra-passe incorreta");
             }
 
-            return Ok("Login feito com sucesso");
+            return Ok(new
+            {
+                userId = user.Id,
+                username = user.Username
+            });
         }
+
     }
 }

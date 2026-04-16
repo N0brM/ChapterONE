@@ -11,11 +11,15 @@ export class Project {
 
   constructor(private http: HttpClient) {}
 
-  getUserProjects(userId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
-  }
+  getUserProjects(userId: string | number): Observable<any[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/user/${userId}` );
+}
 
   createProject(projectData: any): Observable<any> {
     return this.http.post(this.apiUrl, projectData);
+  }
+
+  createChapter(ChapterData: any): Observable<any>{
+    return this.http.post(`${this.apiUrl}/chapters`, ChapterData);
   }
 }

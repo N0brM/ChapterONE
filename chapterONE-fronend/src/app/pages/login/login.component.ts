@@ -23,39 +23,34 @@ export class LoginComponent {
 
   onLogin() {
     this.loginError = false;
-    console.log('ao menos ta a tentar :D', this.loginData);
 
-    const loginPayload = 
-    {
+    const loginPayload = {
       Username: this.loginData.username,
       PasswordHash: this.loginData.passwordHash,
-      Email: "default@email.com",
-      OwnedProjects: []
+      Email: '',
+      OwnedProjects: [],
     };
 
     this.authService.login(loginPayload).subscribe({
       next: (response: any) => {
-        console.log('Sucesso', response);
-        this.authService.saveUserData({
-          userId: '1',
-          username: this.loginData.username
-        });
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        this.loginError = true;
-        console.error('erro no login:', err);
+        console.log('Resposta real da API:', response); 
 
-        if (err.status === 200 || err.status === 201) {
-          console.log('Login bem-sucedido');
-          this.authService.saveUserData({ 
-            userId: '1', 
-            username: this.loginData.username 
-          });
+        if (response && response.userId) {
+          this.authService.saveUserData(response);
           this.router.navigate(['/dashboard']);
+        } else {
+          console.error('A API não enviou o userId esperado:', response);
         }
-        else
-        {
+      },
+      error: (err: any) => {
+        if (err.status === 200 || err.status === 201) {
+
+          const realData = err.error;
+          if (realData && realData.userId) {
+            this.authService.saveUserData(realData);
+            this.router.navigate(['/dashboard']);
+          }
+        } else {
           this.loginError = true;
           console.error('Erro real no login:', err);
           alert('Credenciais inválidas.');

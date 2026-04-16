@@ -21,7 +21,7 @@ namespace ChapterONE.API.Models
         [ForeignKey("Owner")]
         public int OwnerId { get; set; }
         
-        public User Owner { get; set; }
+        public User? Owner { get; set; }
 
         public ICollection<Chapter> Chapters { get; set; }
         public ICollection<ProjectCollaborator> Collaborators { get; set; }
