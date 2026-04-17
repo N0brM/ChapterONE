@@ -19,9 +19,17 @@ namespace ChapterONE.API.Controllers
         [HttpGet("user/{ownerId}")]
         public async Task<ActionResult<IEnumerable<Project>>> GetUserProjects(int ownerId)
         {
-            return await _context.Projects
+            var projects = await _context.Projects
+                .Include(p => p.Chapters)
                 .Where(p => p.OwnerId == ownerId)
                 .ToListAsync();
+
+            foreach (var project in projects)
+            {
+                project.Chapters = project.Chapters.OrderBy(c => c.Order).ToList();
+            }
+
+            return projects;
         }
 
         //detalhes de um project

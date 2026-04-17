@@ -122,38 +122,61 @@ export class DashboardComponent {
   }
 
   onSaveChapter() {
+    const projectId = this.selectedProject.id || this.selectedProject.Id;
+
     const chapterPayload = {
       Title: this.newChapterData.title,
-      Order: this.newChapterData.number,
-      ProjectId: this.selectedProject.Id || this.selectedProject.id,
-      Content: '',
+      Order: parseInt(this.newChapterData.number.toString()),
+      ProjectId: parseInt(projectId.toString()),
+      Project: null
     };
 
-    this.project.createChapter(chapterPayload).subscribe({
-      next: (chapterCriado: any) => {
-        if (!this.selectedProject.Chapters) {
-          this.selectedProject.Chapters = [];
-        }
+    this.project.addChapter(chapterPayload).subscribe({
+      next: (response: any) => {
+        alert('Capítulo guardado com sucesso!');
+      
+        this.project.getUserProjects(this.authService.getUserId()!).subscribe({
+          next: (data: any[]) => {
+            this.projects = data;
+            const updatedProject = this.projects.find(p => (p.id || p.Id) === projectId);
+            if (updatedProject) {
+              this.selectedProject = updatedProject;
+            }
+          }
+        });
 
-        this.selectedProject.Chapters.push(chapterCriado);
-
-        console.log('Capítulo guardado na BD:', chapterCriado);
         this.closeChapterModal();
       },
       error: (err) => {
-        console.error('Erro ao guardar capítulo no servidor:', err);
-        alert('Erro: O capítulo não foi salvo. Verifica a ligação ou o servidor.');
-      },
+        console.error('Erro na API:', err);
+        alert('Erro ao gravar.');
+      }
     });
   }
+
 
   editChapter(chapter: any) {
     console.log('Editar capítulo:', chapter);
   }
 
   deleteChapter(chapter: any) {
-    if (confirm(`Tem a certeza que quer apagar o capítulo "${chapter.Title}"?`)) {
-      console.log('Apagar capítulo:', chapter);
+    const chapterId = chapter.Id || chapter.id;
+
+    if (confirm(`Queres mesmo apagar o capítulo "${chapter.Title}"?`)) {
+      // Agora passamos o ID que o serviço espera
+      this.project.deleteChapter(chapterId).subscribe({
+        next: () => {
+          alert('Capítulo removido!');
+          // Atualiza a lista no ecrã
+          this.selectedProject.Chapters = this.selectedProject.Chapters.filter(
+            (c: any) => (c.Id || c.id) !== chapterId
+          );
+        },
+        error: (err: any) => {
+          console.error('Erro:', err);
+          alert('Erro ao apagar o capítulo.');
+        }
+      });
     }
   }
 

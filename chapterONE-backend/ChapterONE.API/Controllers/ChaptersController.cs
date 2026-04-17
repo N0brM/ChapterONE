@@ -28,12 +28,27 @@ namespace ChapterONE.API.Controllers
 
         //meter um chap novo
         [HttpPost]
-        public async Task<ActionResult<Chapter>> CreateChapter(Chapter chapter)
+        public async Task<ActionResult> CreateChapter([FromBody] Chapter chapter)
         {
-            _context.Chapters.Add(chapter);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrEmpty(chapter.Title))
+            {
+                return BadRequest(new { message = "O título chegou vazio ao servidor!", recebido = chapter });
+            }
 
-            return Ok(chapter);    
+            try
+            {
+                chapter.Project = null;
+                _context.Chapters.Add(chapter);
+                var result = await _context.SaveChangesAsync();
+
+                if (result > 0) return Ok(chapter);
+
+                return BadRequest("não conseguiu persistir os dados.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         //apagar
