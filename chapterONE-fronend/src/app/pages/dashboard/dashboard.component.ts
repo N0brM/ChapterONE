@@ -177,7 +177,6 @@ export class DashboardComponent {
     console.log('A entrar no modo Zen Editor:', chapter.Title);
     this.selectedChapter = { ...chapter };
     this.viewMode = 'editor';
-    this.isSideBarOpen = false;
     this.isSaved = true;
     this.updateWordCount();
   }

@@ -83,7 +83,7 @@
       </div>
     </div>
 
-    <!-- VISTA 3: DETALHES DO PROJETO (Certifica-te que selectedProject existe) -->
+    <!--DETALHES DO PROJETO-->
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
         <div class="cover-placeholder"></div>
@@ -156,12 +156,13 @@
       </div>
     </div>
 
+    <!--editor-->
     <div
       *ngIf="viewMode === 'editor' && selectedChapter"
       class="zen-editor"
       [class.sidebar-open]="isSideBarOpen"
     >
-      <!-- Barra de Ferramentas Superior -->
+      <!--navbar -->
       <header class="zen-toolbar">
         <div class="left-actions">
           <button class="btn-exit" (click)="viewMode = 'details'">X</button>
@@ -187,7 +188,7 @@
       </header>
 
       <div class="editor-container">
-        <!-- Sidebar Retrátil (Toggled) -->
+        <!--mega sidebar moderna type stuff-->
         <aside class="zen-sidebar">
           <h3>Capítulos</h3>
           <ul class="zen-chapters-list">
@@ -196,7 +197,7 @@
               [class.active]="chap.Id === selectedChapter.Id"
               (click)="editChapter(chap)"
             >
-              Capítulo {{ chap.Order }}
+              {{ chap.Title }}
             </li>
           </ul>
         </aside>
@@ -209,7 +210,7 @@
               class="paper-content"
               [(ngModel)]="selectedChapter.Content"
               (input)="onContentChange()"
-              placeholder="Escreve aqui a tua história..."
+              placeholder="..."
               spellcheck="false"
             >
             </textarea>
