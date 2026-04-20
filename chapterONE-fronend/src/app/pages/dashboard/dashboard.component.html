@@ -91,7 +91,9 @@
         <p class="written-by">Escrito por: {{ username }}</p>
 
         <div class="stats">
-          <p><strong>Colaboradores:</strong> {{ selectedProject.Collaborators?.length || 'unknown' }}</p>
+          <p>
+            <strong>Colaboradores:</strong> {{ selectedProject.Collaborators?.length || 'unknown' }}
+          </p>
           <p><strong>Criado em:</strong> {{ selectedProject.CreatedAt || 'unknown' }}</p>
         </div>
 
@@ -122,6 +124,7 @@
       </section>
     </div>
 
+    <!--novo chap-->
     <div class="modal-overlay" *ngIf="showChapterModal">
       <div class="modal-card">
         <div class="modal-header">
@@ -150,6 +153,68 @@
             Adicionar
           </button>
         </div>
+      </div>
+    </div>
+
+    <div
+      *ngIf="viewMode === 'editor' && selectedChapter"
+      class="zen-editor"
+      [class.sidebar-open]="isSideBarOpen"
+    >
+      <!-- Barra de Ferramentas Superior -->
+      <header class="zen-toolbar">
+        <div class="left-actions">
+          <button class="btn-exit" (click)="viewMode = 'details'">X</button>
+          <button class="btn-toggle-sidebar" (click)="toggleSidebar()">E</button>
+          <span class="chapter-title"
+            >Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}</span
+          >
+        </div>
+
+        <div class="format-tools">
+          <button class="btn-tool">B</button>
+          <button class="btn-tool italic">I</button>
+          <button class="btn-tool underline">U</button>
+        </div>
+
+        <div class="right-actions">
+          <span class="word-count">{{ wordCount }} palavras</span>
+          <span class="save-status" [class.saved]="isSaved">
+            {{ isSaved ? 'saved' : 'saving...' }}
+          </span>
+          <button class="btn-save-zen" (click)="saveChapterContent()">Guardar</button>
+        </div>
+      </header>
+
+      <div class="editor-container">
+        <!-- Sidebar Retrátil (Toggled) -->
+        <aside class="zen-sidebar">
+          <h3>Capítulos</h3>
+          <ul class="zen-chapters-list">
+            <li
+              *ngFor="let chap of selectedProject.Chapters"
+              [class.active]="chap.Id === selectedChapter.Id"
+              (click)="editChapter(chap)"
+            >
+              Capítulo {{ chap.Order }}
+            </li>
+          </ul>
+        </aside>
+
+        <!-- Área da Folha de Papel -->
+        <main class="zen-main">
+          <div class="paper-sheet">
+            <div class="paper-divider"></div>
+            <textarea
+              class="paper-content"
+              [(ngModel)]="selectedChapter.Content"
+              (input)="onContentChange()"
+              placeholder="Escreve aqui a tua história..."
+              spellcheck="false"
+            >
+            </textarea>
+          </div>
+        </main>
       </div>
     </div>
   </main>

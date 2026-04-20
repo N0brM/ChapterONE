@@ -26,4 +26,9 @@ export class Project {
   deleteChapter(chapterId: number): Observable<any> {
     return this.http.delete(`${environment.apiUrl}/api/Chapters/${chapterId}`);
   }
+
+  updateChapter(chapter: any): Observable<any> {
+    const id = chapter.Id;
+    return this.http.put(`${this.apiUrl.replace('Projects','Chapters')}/${id}`, chapter);
+  }
 }

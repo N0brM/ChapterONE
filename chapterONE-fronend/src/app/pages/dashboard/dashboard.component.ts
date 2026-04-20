@@ -18,9 +18,14 @@ export class DashboardComponent {
   username: string | null = '';
   projects: any[] = [];
 
-  viewMode: 'grid' | 'form' | 'details' = 'grid';
+  viewMode: 'grid' | 'form' | 'details' | 'editor' = 'grid';
 
   selectedProject: any = null;
+  selectedChapter: any = null;
+
+  isSideBarOpen: boolean = false;
+  isSaved: boolean = true;
+  wordCount: number = 0;
 
   newProjectData = {
     title: '',
@@ -83,7 +88,6 @@ export class DashboardComponent {
           this.showGrid();
         } else {
           console.error('Erro ao criar projeto:', err);
-          alert('Erro ao criar projeto.');
         }
       },
     });
@@ -128,56 +132,93 @@ export class DashboardComponent {
       Title: this.newChapterData.title,
       Order: parseInt(this.newChapterData.number.toString()),
       ProjectId: parseInt(projectId.toString()),
-      Project: null
+      Project: null,
     };
 
     this.project.addChapter(chapterPayload).subscribe({
       next: (response: any) => {
-        alert('Capítulo guardado com sucesso!');
-      
         this.project.getUserProjects(this.authService.getUserId()!).subscribe({
           next: (data: any[]) => {
             this.projects = data;
-            const updatedProject = this.projects.find(p => (p.id || p.Id) === projectId);
+            const updatedProject = this.projects.find((p) => (p.id || p.Id) === projectId);
             if (updatedProject) {
               this.selectedProject = updatedProject;
             }
-          }
+          },
         });
 
         this.closeChapterModal();
       },
       error: (err) => {
         console.error('Erro na API:', err);
-        alert('Erro ao gravar.');
-      }
+      },
     });
-  }
-
-
-  editChapter(chapter: any) {
-    console.log('Editar capítulo:', chapter);
   }
 
   deleteChapter(chapter: any) {
     const chapterId = chapter.Id || chapter.id;
 
     if (confirm(`Queres mesmo apagar o capítulo "${chapter.Title}"?`)) {
-      // Agora passamos o ID que o serviço espera
       this.project.deleteChapter(chapterId).subscribe({
         next: () => {
           alert('Capítulo removido!');
-          // Atualiza a lista no ecrã
           this.selectedProject.Chapters = this.selectedProject.Chapters.filter(
-            (c: any) => (c.Id || c.id) !== chapterId
+            (c: any) => (c.Id || c.id) !== chapterId,
           );
         },
         error: (err: any) => {
           console.error('Erro:', err);
-          alert('Erro ao apagar o capítulo.');
-        }
+        },
       });
     }
+  }
+
+  editChapter(chapter: any) {
+    console.log('A entrar no modo Zen Editor:', chapter.Title);
+    this.selectedChapter = { ...chapter };
+    this.viewMode = 'editor';
+    this.isSideBarOpen = false;
+    this.isSaved = true;
+    this.updateWordCount();
+  }
+
+  toggleSidebar() {
+    this.isSideBarOpen = !this.isSideBarOpen;
+  }
+
+  updateWordCount() {
+    const text = this.selectedChapter?.Content || '';
+    this.wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+  }
+
+  onContentChange() {
+    this.isSaved = false;
+    this.updateWordCount();
+  }
+
+  saveChapterContent() {
+    if (!this.selectedChapter) return;
+
+    const payload = {
+      Id: this.selectedChapter.Id || this.selectedChapter.id,
+      Title: this.selectedChapter.Title || this.selectedChapter.title,
+      Order: this.selectedChapter.Order || this.selectedChapter.order,
+      Content: this.selectedChapter.Content,
+      ProjectId: this.selectedProject.Id || this.selectedProject.id,
+      Project: null,
+    };
+
+    this.project.updateChapter(payload).subscribe({
+      next: (res) => {
+        this.isSaved = true;
+        console.log('Capítulo guardado com sucesso!');
+        this.loadProjects();
+      },
+      error: (err) => {
+        console.error('Erro ao guardar capítulo:', err);
+        alert('Erro ao guardar. Verifica a ligação à API.');
+      },
+    });
   }
 
   onLogout() {
