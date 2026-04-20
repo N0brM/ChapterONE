@@ -12,14 +12,18 @@ export class Project {
   constructor(private http: HttpClient) {}
 
   getUserProjects(userId: string | number): Observable<any[]> {
-  return this.http.get<any[]>(`${this.apiUrl}/user/${userId}` );
-}
+    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}` );
+  }
 
   createProject(projectData: any): Observable<any> {
     return this.http.post(this.apiUrl, projectData);
   }
 
-  createChapter(ChapterData: any): Observable<any>{
-    return this.http.post(`${this.apiUrl}/chapters`, ChapterData);
+  addChapter(chapter: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/api/Chapters`, chapter );
+  }
+
+  deleteChapter(chapterId: number): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/api/Chapters/${chapterId}`);
   }
 }
