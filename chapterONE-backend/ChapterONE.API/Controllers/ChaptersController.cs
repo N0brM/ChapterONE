@@ -51,6 +51,29 @@ namespace ChapterONE.API.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateChapter(int id, [FromBody] Chapter chapter)
+        {
+            if (id != chapter.Id) return BadRequest("ID inválido.");
+
+            var existingChapter = await _context.Chapters.FindAsync(id);
+            if (existingChapter == null) return NotFound("Capítulo não encontrado.");
+
+            existingChapter.Title = chapter.Title;
+            existingChapter.Content = chapter.Content; 
+            existingChapter.Order = chapter.Order;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(existingChapter); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Erro ao gravar o texto: " + ex.Message);
+            }
+        }
+
         //apagar
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteChapter(int id)

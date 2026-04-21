@@ -6,11 +6,12 @@ import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
 import { Title } from '@angular/platform-browser';
 import { response } from 'express';
+import { LucideAngularModule, Edit2, Trash2, Settings, Plus, ArrowLeft, LogOut, X } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -18,7 +19,18 @@ export class DashboardComponent {
   username: string | null = '';
   projects: any[] = [];
 
-  viewMode: 'grid' | 'form' | 'details' | 'editor' = 'grid';
+  //icones do lucide??
+  readonly EditIcon = Edit2;
+  readonly TrashIcon = Trash2;
+  readonly SettingsIcon = Settings;
+  readonly PlusIcon = Plus;
+  readonly BackIcon = ArrowLeft;
+  readonly LogoutIcon = LogOut;
+  readonly CloseIcon = X;
+
+  newAvatarUrl: string = '';
+
+  viewMode: 'grid' | 'form' | 'details' | 'editor' | 'settings'= 'grid';
 
   selectedProject: any = null;
   selectedChapter: any = null;
@@ -126,7 +138,7 @@ export class DashboardComponent {
   }
 
   onSaveChapter() {
-    const projectId = this.selectedProject.id || this.selectedProject.Id;
+    const projectId = this.selectedProject.Id;
 
     const chapterPayload = {
       Title: this.newChapterData.title,
@@ -140,7 +152,7 @@ export class DashboardComponent {
         this.project.getUserProjects(this.authService.getUserId()!).subscribe({
           next: (data: any[]) => {
             this.projects = data;
-            const updatedProject = this.projects.find((p) => (p.id || p.Id) === projectId);
+            const updatedProject = this.projects.find((p) => (p.Id) === projectId);
             if (updatedProject) {
               this.selectedProject = updatedProject;
             }
@@ -156,14 +168,14 @@ export class DashboardComponent {
   }
 
   deleteChapter(chapter: any) {
-    const chapterId = chapter.Id || chapter.id;
+    const chapterId = chapter.Id;
 
     if (confirm(`Queres mesmo apagar o capítulo "${chapter.Title}"?`)) {
       this.project.deleteChapter(chapterId).subscribe({
         next: () => {
           alert('Capítulo removido!');
           this.selectedProject.Chapters = this.selectedProject.Chapters.filter(
-            (c: any) => (c.Id || c.id) !== chapterId,
+            (c: any) => (c.Id) !== chapterId,
           );
         },
         error: (err: any) => {
@@ -174,7 +186,7 @@ export class DashboardComponent {
   }
 
   editChapter(chapter: any) {
-    console.log('A entrar no modo Zen Editor:', chapter.Title);
+    console.log('A entrar no editor:', chapter.Title);
     this.selectedChapter = { ...chapter };
     this.viewMode = 'editor';
     this.isSaved = true;
@@ -196,28 +208,58 @@ export class DashboardComponent {
   }
 
   saveChapterContent() {
-    if (!this.selectedChapter) return;
+    if (!this.selectedChapter || !this.selectedChapter.Id) return;
+    const chapterId: number = this.selectedChapter.Id;
+    const currentUserId = this.authService.getUserId();
+    
+    if (!currentUserId) {
+    console.error("Utilizador não autenticado!");
+      return;
+    }
 
     const payload = {
-      Id: this.selectedChapter.Id || this.selectedChapter.id,
-      Title: this.selectedChapter.Title || this.selectedChapter.title,
-      Order: this.selectedChapter.Order || this.selectedChapter.order,
+      Id: this.selectedChapter.Id,
+      Title: this.selectedChapter.Title,
+      Order: this.selectedChapter.Order,
       Content: this.selectedChapter.Content,
-      ProjectId: this.selectedProject.Id || this.selectedProject.id,
+      ProjectId: this.selectedProject.Id,
       Project: null,
     };
 
     this.project.updateChapter(payload).subscribe({
       next: (res) => {
-        this.isSaved = true;
-        console.log('Capítulo guardado com sucesso!');
-        this.loadProjects();
-      },
+      this.isSaved = true;
+
+      this.project.getUserProjects(currentUserId).subscribe({
+        next: (data: any) => {
+          this.projects = data;
+
+          
+          const updatedProject = this.projects.find(p => p.Id === this.selectedProject.Id);
+          if (updatedProject) {
+            this.selectedProject = updatedProject;
+            const updatedChapter = updatedProject.Chapters.find((c: any) => c.Id === chapterId);
+            if (updatedChapter) {
+              this.selectedChapter = updatedChapter;
+            }
+          }
+          console.log('Capítulo e lista atualizados!');
+        }
+      });
+    },
       error: (err) => {
         console.error('Erro ao guardar capítulo:', err);
         alert('Erro ao guardar. Verifica a ligação à API.');
       },
     });
+  }
+
+  goToSettings(){
+    this.viewMode = 'settings';
+  }
+
+  updateUserProfile(){
+    console.log('atualizatings the profiles');
   }
 
   onLogout() {

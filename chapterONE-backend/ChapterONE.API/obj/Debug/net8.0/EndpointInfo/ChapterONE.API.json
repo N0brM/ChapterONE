@@ -165,6 +165,46 @@
       }
     },
     "/api/Chapters/{id}": {
+      "put": {
+        "tags": [
+          "Chapters"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Chapters"
@@ -437,6 +477,10 @@
             "minimum": 1,
             "type": "integer",
             "format": "int32"
+          },
+          "Content": {
+            "type": "string",
+            "nullable": true
           },
           "Project": {
             "$ref": "#/components/schemas/Project"

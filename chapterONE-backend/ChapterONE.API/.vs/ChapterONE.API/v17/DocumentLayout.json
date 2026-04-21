@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\models\\chapter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:models\\chapter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\controllers\\chapterscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:controllers\\chapterscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\models\\chapter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:models\\chapter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\controllers\\collaboratorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:controllers\\collaboratorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -33,10 +37,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|c:\\users\\sebas\\desktop\\chapterone\\chapterone-backend\\chapterone.api\\controllers\\collaboratorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{91492B29-D917-45AB-8964-F3E082B04E2E}|ChapterONE.API.csproj|solutionrelative:controllers\\collaboratorscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -46,11 +46,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "LoginRequest.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Models\\LoginRequest.cs",
               "RelativeDocumentMoniker": "Models\\LoginRequest.cs",
@@ -62,7 +62,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "AuthController.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "Controllers\\AuthController.cs",
@@ -74,19 +74,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Chapter.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Models\\Chapter.cs",
               "RelativeDocumentMoniker": "Models\\Chapter.cs",
               "ToolTip": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Models\\Chapter.cs",
               "RelativeToolTip": "Models\\Chapter.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-16T10:23:53.418Z"
+              "WhenOpened": "2026-04-16T10:23:53.418Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Project.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Models\\Project.cs",
               "RelativeDocumentMoniker": "Models\\Project.cs",
@@ -98,7 +99,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "User.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Models\\User.cs",
               "RelativeDocumentMoniker": "Models\\User.cs",
@@ -110,7 +111,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -122,7 +123,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 2,
               "Title": "CollaboratorsController.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Controllers\\CollaboratorsController.cs",
               "RelativeDocumentMoniker": "Controllers\\CollaboratorsController.cs",
@@ -130,24 +131,25 @@
               "RelativeToolTip": "Controllers\\CollaboratorsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-08T10:24:16.484Z"
+              "WhenOpened": "2026-04-08T10:24:16.484Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ChaptersController.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Controllers\\ChaptersController.cs",
               "RelativeDocumentMoniker": "Controllers\\ChaptersController.cs",
               "ToolTip": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Controllers\\ChaptersController.cs",
               "RelativeToolTip": "Controllers\\ChaptersController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAABWAAAAAAAAAA==",
+              "ViewState": "AgIAADAAAAAAAAAAAAAYwEQAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-04-08T09:58:54.817Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "ProjectsController.cs",
               "DocumentMoniker": "C:\\Users\\sebas\\Desktop\\ChapterONE\\chapterONE-backend\\ChapterONE.API\\Controllers\\ProjectsController.cs",
               "RelativeDocumentMoniker": "Controllers\\ProjectsController.cs",

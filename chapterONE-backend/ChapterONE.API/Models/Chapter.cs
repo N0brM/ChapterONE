@@ -20,6 +20,7 @@ namespace ChapterONE.API.Models
         [Range(1, int.MaxValue)]
         public int Order { get; set; }
                       
+        public string? Content { get; set; }
         public Project? Project { get; set; }
     }
 }

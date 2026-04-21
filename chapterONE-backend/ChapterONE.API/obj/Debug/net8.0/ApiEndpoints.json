@@ -59,6 +59,27 @@
   },
   {
     "ContainingType": "ChapterONE.API.Controllers.ChaptersController",
+    "Method": "UpdateChapter",
+    "RelativePath": "api/Chapters/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "chapter",
+        "Type": "ChapterONE.API.Models.Chapter",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.ChaptersController",
     "Method": "DeleteChapter",
     "RelativePath": "api/Chapters/{id}",
     "HttpMethod": "DELETE",
