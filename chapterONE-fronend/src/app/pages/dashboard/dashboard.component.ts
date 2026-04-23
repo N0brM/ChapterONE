@@ -11,7 +11,7 @@ import { LucideAngularModule, Edit2, Trash2, Settings, Plus, ArrowLeft, LogOut, 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule], 
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
