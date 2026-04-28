@@ -180,9 +180,15 @@
           >
         </div>
         <div class="format-tools">
-          <button class="btn-tool"><lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon></button>
-          <button class="btn-tool italic"><lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon></button>
-          <button class="btn-tool underline"><lucide-icon [name]="UnderlineIcon" [size]="16"></lucide-icon></button>
+          <button class="btn-tool">
+            <lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool italic">
+            <lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool underline">
+            <lucide-icon [name]="UnderlineIcon" [size]="16"></lucide-icon>
+          </button>
         </div>
         <div class="right-actions">
           <span class="word-count">{{ wordCount }} palavras</span>
@@ -220,6 +226,57 @@
             </textarea>
           </div>
         </main>
+      </div>
+    </div>
+    <div *ngIf="viewMode === 'settings'" class="settings-view">
+      <div class="settings-card">
+        <div class="settings-header">
+          <h2>Definições</h2>
+          <p>Personaliza a tua experiência no ChapterONE</p>
+        </div>
+
+        <div class="settings-body">
+          <div class="setting-group">
+            <label>Tema da Interface</label>
+            <div class="theme-grid">
+              <button
+                (click)="setTheme('modern-light')"
+                [class.active]="currentTheme === 'modern-light'"
+              >
+                Modern Light
+              </button>
+              <button
+                (click)="setTheme('modern-dark')"
+                [class.active]="currentTheme === 'modern-dark'"
+              >
+                Modern Dark
+              </button>
+              <button
+                (click)="setTheme('retro-light')"
+                [class.active]="currentTheme === 'retro-light'"
+              >
+                Retro Silver (Win98)
+              </button>
+              <button
+                (click)="setTheme('retro-dark')"
+                [class.active]="currentTheme === 'retro-dark'"
+              >
+                Retro Terminal (Green)
+              </button>
+            </div>
+          </div>
+
+          <hr class="settings-divider" />
+
+          <button class="btn-logout-big" (click)="onLogout()">
+            <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
+            Terminar Sessão
+          </button>
+        </div>
+
+        <div class="settings-footer">
+          <button class="btn-back" (click)="showGrid()">Voltar ao Dashboard</button>
+        </div>
       </div>
     </div>
   </main>

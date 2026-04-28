@@ -5,14 +5,81 @@ $text-color: #1f2937;
 $card-bg: #ffffff;
 $border-color: #e5e7eb;
 
+// Default tema claro
+:root {
+  --bg-color: #f3f4f6;
+  --text-color: #1f2937;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+  --nav-bg: #ffffff;
+  --font-main: 'Inter', sans-serif;
+  --shadow-style: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+// tema preto
+body.dark-theme {
+  --bg-color: #121212;
+  --text-color: #e5e7eb;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --nav-bg: #181818;
+}
+// Tema retro tipo sites em 2000s
+//light (cinzento)
+body.retro-light {
+  --bg-color: #c0c0c0;
+  --text-color: #000000;
+  --card-bg: #ffffff;
+  --nav-bg: #000080;
+  --border-style: 2px solid;
+  --border-color-light: #ffffff;
+  --border-color-dark: #808080;
+  --font-main: 'MS Sans Serif', 'Tahoma', sans-serif;
+
+  // Efeito de botão 3D antigo
+  --box-shadow-retro: 2px 2px 0px #000000;
+  --card-shadow:
+    inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #ffffff;
+}
+// dark (hacker type thing)
+body.retro-dark {
+  --bg-color: #000000;
+  --text-color: #00ff41;
+  --card-bg: #1a1a1a;
+  --nav-bg: #333333;
+  --border-style: 1px solid #00ff41;
+  --font-main: 'Courier New', monospace;
+  --card-shadow: 4px 4px 0px #004411;
+}
+
 .dashboard-container {
   min-height: 100vh;
   background-color: $bg-color;
 
+  &.retro-light,
+  &.retro-dark {
+    * {
+      border-radius: 0 !important;
+      font-family: var(--font-main);
+    }
+
+    .project-card,
+    .form-card,
+    .btn-new-project {
+      background-color: var(--card-bg);
+      border: var(--border-style);
+      box-shadow: var(--card-shadow);
+
+      &:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 4px 4px 0px var(--text-color);
+      }
+    }
+  }
+
   .navbar {
     height: 64px;
-    background-color: $card-bg;
-    border-bottom: 1px solid $border-color;
+    background-color: var(--card-bg);
+    border-bottom: 3px double var(--border-color-dark);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -505,10 +572,10 @@ $border-color: #e5e7eb;
         position: absolute;
         top: 0;
         bottom: 0;
-        left: -250px; 
+        left: -250px;
         transition: left 0.3s ease-in-out;
         z-index: 2005;
-        visibility: hidden; 
+        visibility: hidden;
 
         h3 {
           margin-bottom: 1.5rem;

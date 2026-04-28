@@ -5,15 +5,26 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
 import { Title } from '@angular/platform-browser';
-import { 
-  LucideAngularModule, Edit2, Trash2, Settings, Plus, 
-  ArrowLeft, LogOut, X, Bold, Italic, Underline, Save, PanelLeft 
+import {
+  LucideAngularModule,
+  Edit2,
+  Trash2,
+  Settings,
+  Plus,
+  ArrowLeft,
+  LogOut,
+  X,
+  Bold,
+  Italic,
+  Underline,
+  Save,
+  PanelLeft,
 } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule], 
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -37,7 +48,7 @@ export class DashboardComponent {
 
   newAvatarUrl: string = '';
 
-  viewMode: 'grid' | 'form' | 'details' | 'editor' | 'settings'= 'grid';
+  viewMode: 'grid' | 'form' | 'details' | 'editor' | 'settings' = 'grid';
 
   selectedProject: any = null;
   selectedChapter: any = null;
@@ -54,6 +65,8 @@ export class DashboardComponent {
   showChapterModal: boolean = false;
   newChapterData = { title: '', number: 1 };
 
+  currentTheme: string = 'modern-light';
+
   constructor(
     private authService: AuthService,
     private project: Project,
@@ -61,6 +74,10 @@ export class DashboardComponent {
   ) {}
 
   ngOnInit() {
+    const savedTheme = localStorage.getItem('selected-theme');
+    if (savedTheme) {
+      this.setTheme(savedTheme);
+    }
     this.username = this.authService.getUsername();
     if (!this.username) {
       this.router.navigate(['/login']);
@@ -159,7 +176,7 @@ export class DashboardComponent {
         this.project.getUserProjects(this.authService.getUserId()!).subscribe({
           next: (data: any[]) => {
             this.projects = data;
-            const updatedProject = this.projects.find((p) => (p.Id) === projectId);
+            const updatedProject = this.projects.find((p) => p.Id === projectId);
             if (updatedProject) {
               this.selectedProject = updatedProject;
             }
@@ -182,7 +199,7 @@ export class DashboardComponent {
         next: () => {
           alert('Capítulo removido!');
           this.selectedProject.Chapters = this.selectedProject.Chapters.filter(
-            (c: any) => (c.Id) !== chapterId,
+            (c: any) => c.Id !== chapterId,
           );
         },
         error: (err: any) => {
@@ -218,9 +235,9 @@ export class DashboardComponent {
     if (!this.selectedChapter || !this.selectedChapter.Id) return;
     const chapterId: number = this.selectedChapter.Id;
     const currentUserId = this.authService.getUserId();
-    
+
     if (!currentUserId) {
-    console.error("Utilizador não autenticado!");
+      console.error('Utilizador não autenticado!');
       return;
     }
 
@@ -235,25 +252,24 @@ export class DashboardComponent {
 
     this.project.updateChapter(payload).subscribe({
       next: (res) => {
-      this.isSaved = true;
+        this.isSaved = true;
 
-      this.project.getUserProjects(currentUserId).subscribe({
-        next: (data: any) => {
-          this.projects = data;
+        this.project.getUserProjects(currentUserId).subscribe({
+          next: (data: any) => {
+            this.projects = data;
 
-          
-          const updatedProject = this.projects.find(p => p.Id === this.selectedProject.Id);
-          if (updatedProject) {
-            this.selectedProject = updatedProject;
-            const updatedChapter = updatedProject.Chapters.find((c: any) => c.Id === chapterId);
-            if (updatedChapter) {
-              this.selectedChapter = updatedChapter;
+            const updatedProject = this.projects.find((p) => p.Id === this.selectedProject.Id);
+            if (updatedProject) {
+              this.selectedProject = updatedProject;
+              const updatedChapter = updatedProject.Chapters.find((c: any) => c.Id === chapterId);
+              if (updatedChapter) {
+                this.selectedChapter = updatedChapter;
+              }
             }
-          }
-          console.log('Capítulo e lista atualizados!');
-        }
-      });
-    },
+            console.log('Capítulo e lista atualizados!');
+          },
+        });
+      },
       error: (err) => {
         console.error('Erro ao guardar capítulo:', err);
         alert('Erro ao guardar. Verifica a ligação à API.');
@@ -261,12 +277,26 @@ export class DashboardComponent {
     });
   }
 
-  goToSettings(){
+  goToSettings() {
     this.viewMode = 'settings';
   }
 
-  updateUserProfile(){
+  updateUserProfile() {
     console.log('atualizatings the profiles');
+  }
+
+  setTheme(theme: string) {
+    this.currentTheme = theme;
+    const body = document.body;
+
+    body.classList.remove('dark-theme', 'retro-light', 'retro-dark');
+
+    if (theme !== 'modern-light') {
+      body.classList.add(theme);
+    }
+
+    localStorage.setItem('selected-theme', theme);
+    console.log('Tema alterado para: ' + theme);
   }
 
   onLogout() {
