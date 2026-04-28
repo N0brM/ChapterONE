@@ -5,8 +5,10 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
 import { Title } from '@angular/platform-browser';
-import { response } from 'express';
-import { LucideAngularModule, Edit2, Trash2, Settings, Plus, ArrowLeft, LogOut, X } from 'lucide-angular';
+import { 
+  LucideAngularModule, Edit2, Trash2, Settings, Plus, 
+  ArrowLeft, LogOut, X, Bold, Italic, Underline, Save, PanelLeft 
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,6 +29,11 @@ export class DashboardComponent {
   readonly BackIcon = ArrowLeft;
   readonly LogoutIcon = LogOut;
   readonly CloseIcon = X;
+  readonly BoldIcon = Bold;
+  readonly ItalicIcon = Italic;
+  readonly UnderlineIcon = Underline;
+  readonly SaveIcon = Save;
+  readonly SidebarIcon = PanelLeft;
 
   newAvatarUrl: string = '';
 

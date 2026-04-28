@@ -4,7 +4,7 @@
     <div class="user-menu">
       <img [src]="newAvatarUrl || 'assets/default-avatar.png'" class="user-avatar" alt="Profile" />
       <span>Heya, {{ username }}!</span>
-
+      <!-- botao dos settings -->
       <button (click)="goToSettings()" class="btn-settings" title="Definições">
         <lucide-icon [name]="SettingsIcon" [size]="20"></lucide-icon>
       </button>
@@ -17,7 +17,8 @@
       <div class="header-section">
         <h2>Os Meus Projetos</h2>
         <button (click)="showNewProjectForm()" class="btn-new-project">
-          <span>+ Novo Projeto</span>
+          <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+          <span>Novo Projeto</span>
         </button>
       </div>
       <div class="projects-grid" *ngIf="projects.length > 0; else emptyState">
@@ -168,16 +169,20 @@
       <!--navbar -->
       <header class="zen-toolbar">
         <div class="left-actions">
-          <button class="btn-exit" (click)="viewMode = 'details'">X</button>
-          <button class="btn-toggle-sidebar" (click)="toggleSidebar()">E</button>
+          <button class="btn-exit" (click)="viewMode = 'details'">
+            <lucide-icon [name]="CloseIcon" [size]="20"></lucide-icon>
+          </button>
+          <button class="btn-toggle-sidebar" (click)="toggleSidebar()">
+            <lucide-icon [name]="SidebarIcon" [size]="20"></lucide-icon>
+          </button>
           <span class="chapter-title"
             >Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}</span
           >
         </div>
         <div class="format-tools">
-          <button class="btn-tool">B</button>
-          <button class="btn-tool italic">I</button>
-          <button class="btn-tool underline">U</button>
+          <button class="btn-tool"><lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon></button>
+          <button class="btn-tool italic"><lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon></button>
+          <button class="btn-tool underline"><lucide-icon [name]="UnderlineIcon" [size]="16"></lucide-icon></button>
         </div>
         <div class="right-actions">
           <span class="word-count">{{ wordCount }} palavras</span>
