@@ -2,6 +2,7 @@
   <nav class="navbar">
     <a (click)="showGrid()" class="logo" style="cursor: pointer">ChapterONE</a>
     <div class="user-menu">
+      <!--! nao funciona por agora -->
       <img [src]="newAvatarUrl || 'assets/default-avatar.png'" class="user-avatar" alt="Profile" />
       <span>Heya, {{ username }}!</span>
       <!-- botao dos settings -->
@@ -28,7 +29,7 @@
             <p>{{ project.Description || 'Sem descrição disponível' }}</p>
           </div>
           <div class="project-footer">
-            <span class="chapters-count">{{ project.chaptersCount || 0 }} Capítulos</span>
+            <span class="chapters-count">{{ project.Chapters?.length || 0 }} Capítulos</span>
             <span class="last-edit">Atualizado recentemente</span>
           </div>
         </div>
@@ -73,6 +74,7 @@
               placeholder="Sobre o que é este livro"
             ></textarea>
           </div>
+          <!--TODO: Adicionar capa de projeto-->
           <div class="actions">
             <button type="button" class="btn-cancel" (click)="showGrid()">Cancelar</button>
             <button type="submit" class="btn-submit" [disabled]="!newProjectData.title">
@@ -86,8 +88,9 @@
     <!--DETALHES DO PROJETO-->
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
-        <div class="book-cover">
+        <div class="book-cover" [style.background-color]="selectedProject.CoverColor || '#6366f1'">
           <img [src]="selectedProject.CoverUrl || 'assets/default-cover.png'" alt="Capa do Livro" />
+          <!--! NAO FUNCIONAAAA -->
         </div>
 
         <h2 class="project-title">{{ selectedProject.Title }}</h2>
@@ -101,7 +104,9 @@
           <div class="stat-item">
             <span class="stat-label">Criado em</span>
             <span>{{
-              selectedProject.CreatedAt ? (selectedProject.CreatedAt | date: 'dd/MM/yyyy') : '---'
+              selectedProject.CreationDate
+                ? (selectedProject.CreationDate | date: 'dd/MM/yyyy')
+                : '---'
             }}</span>
           </div>
         </div>
@@ -114,7 +119,7 @@
         <div class="chapters-list">
           <div class="chapter-item" *ngFor="let chapter of selectedProject.Chapters; let i = index">
             <span class="chapter-name">
-              Chapter {{ chapter.Number || i + 1 }} - "{{ chapter.Title }}"
+              Chapter {{ chapter.Order || i + 1 }} - "{{ chapter.Title }}"
             </span>
             <div class="chapter-actions">
               <button class="btn-icon edit" (click)="editChapter(chapter)">
@@ -144,11 +149,7 @@
           </div>
           <div class="form-group">
             <label>Número do Capítulo</label>
-            <input
-              type="number"
-              [(ngModel)]="newChapterData.number"
-              placeholder="{{ selectedChapter.Order }}"
-            />
+            <input type="number" [(ngModel)]="newChapterData.number" placeholder="1" />
           </div>
         </div>
         <div class="modal-footer">
@@ -180,6 +181,7 @@
           >
         </div>
         <div class="format-tools">
+          <!-- TODO: meter isso a funcionar -->
           <button class="btn-tool">
             <lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon>
           </button>
@@ -193,6 +195,7 @@
         <div class="right-actions">
           <span class="word-count">{{ wordCount }} palavras</span>
           <span class="save-status" [class.saved]="isSaved">
+            <!--! NAO FUNCIONA -->
             {{ isSaved ? 'saved' : 'saving...' }}
           </span>
           <button class="btn-save-zen" (click)="saveChapterContent()">Guardar</button>
@@ -204,7 +207,7 @@
           <h3>Capítulos</h3>
           <ul class="zen-chapters-list">
             <li
-              *ngFor="let chap of selectedProject.Chapters"
+              *ngFor="let chap of selectedProject?.Chapters"
               [class.active]="chap.Id === selectedChapter.Id"
               (click)="editChapter(chap)"
             >
@@ -228,6 +231,7 @@
         </main>
       </div>
     </div>
+    <!--settings-->
     <div *ngIf="viewMode === 'settings'" class="settings-view">
       <div class="settings-card">
         <div class="settings-header">
@@ -239,24 +243,28 @@
           <div class="setting-group">
             <label>Tema da Interface</label>
             <div class="theme-grid">
+              <!-- Perfect -->
               <button
                 (click)="setTheme('modern-light')"
                 [class.active]="currentTheme === 'modern-light'"
               >
                 Modern Light
               </button>
+              <!-- Perfect -->
               <button
-                (click)="setTheme('modern-dark')"
+                (click)="setTheme('dark-theme')"
                 [class.active]="currentTheme === 'modern-dark'"
               >
                 Modern Dark
               </button>
+              <!--! need to make more blocky and busy-->
               <button
                 (click)="setTheme('retro-light')"
                 [class.active]="currentTheme === 'retro-light'"
               >
                 Retro Silver (Win98)
               </button>
+              <!--! could be better-->
               <button
                 (click)="setTheme('retro-dark')"
                 [class.active]="currentTheme === 'retro-dark'"

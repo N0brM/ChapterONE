@@ -84,14 +84,14 @@
         }
       }
     },
-    "/api/Chapters/project/{projectId}": {
+    "/api/Chapters/{id}": {
       "get": {
         "tags": [
           "Chapters"
         ],
         "parameters": [
           {
-            "name": "projectId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -106,65 +106,23 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               }
             }
           }
         }
-      }
-    },
-    "/api/Chapters": {
-      "post": {
-        "tags": [
-          "Chapters"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/Chapters/{id}": {
+      },
       "put": {
         "tags": [
           "Chapters"
@@ -223,6 +181,54 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Chapters": {
+      "post": {
+        "tags": [
+          "Chapters"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              }
+            }
           }
         }
       }
@@ -484,6 +490,25 @@
           },
           "Project": {
             "$ref": "#/components/schemas/Project"
+          },
+          "WordCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReadingTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PredominantEmotion": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "LastAnalysisDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -504,7 +529,6 @@
       },
       "Project": {
         "required": [
-          "CreationDate",
           "OwnerId",
           "Title"
         ],
@@ -533,6 +557,18 @@
           },
           "Owner": {
             "$ref": "#/components/schemas/User"
+          },
+          "CoverColor": {
+            "maxLength": 7,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "CoverImage": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "Chapters": {
             "type": "array",
@@ -610,10 +646,29 @@
             "type": "string",
             "format": "date-time"
           },
+          "PreferredTheme": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "ProfilePicture": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
           "OwnedProjects": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Project"
+            },
+            "nullable": true
+          },
+          "Collaborations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectCollaborator"
             },
             "nullable": true
           }

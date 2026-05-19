@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
 import { Title } from '@angular/platform-browser';
+//? imports do lucide
 import {
   LucideAngularModule,
   Edit2,
@@ -19,6 +20,10 @@ import {
   Underline,
   Save,
   PanelLeft,
+  Sun,
+  Moon,
+  Monitor,
+  Terminal
 } from 'lucide-angular';
 
 @Component({
@@ -28,11 +33,11 @@ import {
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   username: string | null = '';
   projects: any[] = [];
 
-  //icones do lucide??
+  //? icones do lucide??
   readonly EditIcon = Edit2;
   readonly TrashIcon = Trash2;
   readonly SettingsIcon = Settings;
@@ -45,6 +50,10 @@ export class DashboardComponent {
   readonly UnderlineIcon = Underline;
   readonly SaveIcon = Save;
   readonly SidebarIcon = PanelLeft;
+  readonly SunIcon = Sun;
+  readonly MoonIcon = Moon;
+  readonly RetroIcon = Monitor;
+  readonly TerminalIcon = Terminal;
 
   newAvatarUrl: string = '';
 
@@ -60,6 +69,7 @@ export class DashboardComponent {
   newProjectData = {
     title: '',
     description: '',
+    coverColor: '#6366f1'
   };
 
   showChapterModal: boolean = false;
@@ -74,10 +84,10 @@ export class DashboardComponent {
   ) {}
 
   ngOnInit() {
-    const savedTheme = localStorage.getItem('selected-theme');
-    if (savedTheme) {
-      this.setTheme(savedTheme);
-    }
+    // Carregar tema do localStorage
+    const savedTheme = localStorage.getItem('selected-theme') || 'modern-light';
+    this.setTheme(savedTheme);
+
     this.username = this.authService.getUsername();
     if (!this.username) {
       this.router.navigate(['/login']);
@@ -103,28 +113,22 @@ export class DashboardComponent {
     const userId = this.authService.getUserId();
     console.log('ID do utilizador a criar o projeto:', userId);
 
-    const username = this.authService.getUsername();
     if (!userId) return;
 
     const payload = {
-      Title: this.newProjectData.title,
-      Description: this.newProjectData.description,
-      OwnerId: parseInt(userId || '0'),
-      Chapters: [],
-      Owner: null,
-      Collaborators: [],
+      title: this.newProjectData.title,
+      description: this.newProjectData.description,
+      ownerId: parseInt(userId),
+      coverColor: this.newProjectData.coverColor,
+      chapters: []
     };
 
     this.project.createProject(payload).subscribe({
-      next: (response: any) => {
+      next: () => {
         this.showGrid();
       },
       error: (err) => {
-        if (err.status === 200 || err.status === 201) {
-          this.showGrid();
-        } else {
-          console.error('Erro ao criar projeto:', err);
-        }
+        console.error('Erro ao criar projeto:', err);
       },
     });
   }
@@ -137,7 +141,7 @@ export class DashboardComponent {
 
   showNewProjectForm() {
     this.viewMode = 'form';
-    this.newProjectData = { title: '', description: '' };
+    this.newProjectData = { title: '', description: '', coverColor: '#6366f1' };
   }
 
   showGrid() {
@@ -146,14 +150,9 @@ export class DashboardComponent {
     this.loadProjects();
   }
 
-  createNewProject() {
-    console.log('A tentar criar novo projeto');
-    this.router.navigate(['/new-project']);
-  }
-
   openAddChapterModal() {
     this.showChapterModal = true;
-    const nextNum = (this.selectedProject.Chapters?.length || 0) + 1;
+    const nextNum = (this.selectedProject?.chapters?.length || 0) + 1;
     this.newChapterData = { title: '', number: nextNum };
   }
 
@@ -162,27 +161,22 @@ export class DashboardComponent {
   }
 
   onSaveChapter() {
-    const projectId = this.selectedProject.Id;
+    if (!this.selectedProject) return;
 
     const chapterPayload = {
-      Title: this.newChapterData.title,
-      Order: parseInt(this.newChapterData.number.toString()),
-      ProjectId: parseInt(projectId.toString()),
-      Project: null,
+      title: this.newChapterData.title,
+      order: this.newChapterData.number,
+      projectId: this.selectedProject.id
     };
 
     this.project.addChapter(chapterPayload).subscribe({
-      next: (response: any) => {
-        this.project.getUserProjects(this.authService.getUserId()!).subscribe({
-          next: (data: any[]) => {
-            this.projects = data;
-            const updatedProject = this.projects.find((p) => p.Id === projectId);
-            if (updatedProject) {
-              this.selectedProject = updatedProject;
-            }
+      next: () => {
+        this.project.getProject(this.selectedProject.id).subscribe({
+          next: (updatedProject) => {
+            this.selectedProject = updatedProject;
+            this.loadProjects();
           },
         });
-
         this.closeChapterModal();
       },
       error: (err) => {
@@ -192,14 +186,11 @@ export class DashboardComponent {
   }
 
   deleteChapter(chapter: any) {
-    const chapterId = chapter.Id;
-
-    if (confirm(`Queres mesmo apagar o capítulo "${chapter.Title}"?`)) {
-      this.project.deleteChapter(chapterId).subscribe({
+    if (confirm(`Queres mesmo apagar o capítulo "${chapter.title}"?`)) {
+      this.project.deleteChapter(chapter.id).subscribe({
         next: () => {
-          alert('Capítulo removido!');
-          this.selectedProject.Chapters = this.selectedProject.Chapters.filter(
-            (c: any) => c.Id !== chapterId,
+          this.selectedProject.chapters = this.selectedProject.chapters.filter(
+            (c: any) => c.id !== chapter.id,
           );
         },
         error: (err: any) => {
@@ -210,7 +201,7 @@ export class DashboardComponent {
   }
 
   editChapter(chapter: any) {
-    console.log('A entrar no editor:', chapter.Title);
+    console.log('A entrar no editor:', chapter.title);
     this.selectedChapter = { ...chapter };
     this.viewMode = 'editor';
     this.isSaved = true;
@@ -222,7 +213,7 @@ export class DashboardComponent {
   }
 
   updateWordCount() {
-    const text = this.selectedChapter?.Content || '';
+    const text = this.selectedChapter?.content || '';
     this.wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   }
 
@@ -232,43 +223,23 @@ export class DashboardComponent {
   }
 
   saveChapterContent() {
-    if (!this.selectedChapter || !this.selectedChapter.Id) return;
-    const chapterId: number = this.selectedChapter.Id;
-    const currentUserId = this.authService.getUserId();
-
-    if (!currentUserId) {
-      console.error('Utilizador não autenticado!');
-      return;
-    }
+    if (!this.selectedChapter || !this.selectedProject) return;
 
     const payload = {
-      Id: this.selectedChapter.Id,
-      Title: this.selectedChapter.Title,
-      Order: this.selectedChapter.Order,
-      Content: this.selectedChapter.Content,
-      ProjectId: this.selectedProject.Id,
-      Project: null,
+      id: this.selectedChapter.id,
+      title: this.selectedChapter.title,
+      order: this.selectedChapter.order,
+      content: this.selectedChapter.content,
+      projectId: this.selectedProject.id
     };
 
     this.project.updateChapter(payload).subscribe({
-      next: (res) => {
+      next: () => {
         this.isSaved = true;
-
-        this.project.getUserProjects(currentUserId).subscribe({
-          next: (data: any) => {
-            this.projects = data;
-
-            const updatedProject = this.projects.find((p) => p.Id === this.selectedProject.Id);
-            if (updatedProject) {
-              this.selectedProject = updatedProject;
-              const updatedChapter = updatedProject.Chapters.find((c: any) => c.Id === chapterId);
-              if (updatedChapter) {
-                this.selectedChapter = updatedChapter;
-              }
-            }
-            console.log('Capítulo e lista atualizados!');
-          },
+        this.project.getProject(this.selectedProject.id).subscribe(p => {
+          this.selectedProject = p;
         });
+        console.log('Capítulo e lista atualizados!');
       },
       error: (err) => {
         console.error('Erro ao guardar capítulo:', err);
@@ -281,10 +252,12 @@ export class DashboardComponent {
     this.viewMode = 'settings';
   }
 
+  //todo Ter um espaço de personalização do perfil
   updateUserProfile() {
     console.log('atualizatings the profiles');
   }
 
+  // todo De momento não funciona de todo, tenho de mexer no backend e na base de dados para incluir espaços de 'prefered-theme' ou algo assim
   setTheme(theme: string) {
     this.currentTheme = theme;
     const body = document.body;

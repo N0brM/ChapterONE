@@ -15,6 +15,10 @@ export class Project {
     return this.http.get<any[]>(`${this.apiUrl}/user/${userId}` );
   }
 
+  getProject(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}` );
+  }
+
   createProject(projectData: any): Observable<any> {
     return this.http.post(this.apiUrl, projectData);
   }
@@ -28,7 +32,6 @@ export class Project {
   }
 
   updateChapter(chapter: any): Observable<any> {
-    const id = chapter.Id;
-    return this.http.put(`${this.apiUrl.replace('Projects','Chapters')}/${id}`, chapter);
+    return this.http.put(`${environment.apiUrl}/api/Chapters/${chapter.id}`, chapter );
   }
 }

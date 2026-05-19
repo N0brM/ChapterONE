@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChapterONE.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9abea570fa3ddfcb12fa9a132895287d3aa25bf5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d0f648413bb6d4df21a4af6b1e485e682f4a4d32")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChapterONE.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChapterONE.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
