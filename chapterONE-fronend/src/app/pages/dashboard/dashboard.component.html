@@ -3,7 +3,7 @@
     <a (click)="showGrid()" class="logo" style="cursor: pointer">ChapterONE</a>
     <div class="user-menu">
       <!--! nao funciona por agora -->
-      <img [src]="newAvatarUrl || 'assets/default-avatar.png'" class="user-avatar" alt="Profile" />
+      <img [src]="newAvatarUrl || '../assets/default-avatar.png'" class="user-avatar" alt="Profile" />
       <span>Heya, {{ username }}!</span>
       <!-- botao dos settings -->
       <button (click)="goToSettings()" class="btn-settings" title="Definições">
@@ -74,6 +74,30 @@
               placeholder="Sobre o que é este livro"
             ></textarea>
           </div>
+          <div class="form-group">
+            <label>Cor da Capa</label>
+            <div class="color-picker">
+              <div 
+                *ngFor="let color of suggestedColors" 
+                class="color-option" 
+                [style.background-color]="color"
+                [class.selected]="newProjectData.coverColor === color"
+                (click)="setCoverColor(color)">
+              </div>
+            </div>
+          </div>
+          <!--
+          <div class="form-group">
+            <label for="coverUrl">URL da Imagem da Capa (Opcional)</label>
+            <input
+              type="text"
+              id="coverUrl"
+              [(ngModel)]="newProjectData.coverUrl"
+              name="coverUrl"
+              placeholder=""
+            />
+          </div>
+          -->
           <!--TODO: Adicionar capa de projeto-->
           <div class="actions">
             <button type="button" class="btn-cancel" (click)="showGrid()">Cancelar</button>
@@ -89,7 +113,7 @@
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
         <div class="book-cover" [style.background-color]="selectedProject.CoverColor || '#6366f1'">
-          <img [src]="selectedProject.CoverUrl || 'assets/default-cover.png'" alt="Capa do Livro" />
+          <img [src]="selectedProject.CoverUrl || '../assets/default-cover.png'" alt="Capa do Livro" />
           <!--! NAO FUNCIONAAAA -->
         </div>
 

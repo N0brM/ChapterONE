@@ -50,6 +50,7 @@ export class DashboardComponent implements OnInit {
   readonly UnderlineIcon = Underline;
   readonly SaveIcon = Save;
   readonly SidebarIcon = PanelLeft;
+  // Themes icons yah to be used
   readonly SunIcon = Sun;
   readonly MoonIcon = Moon;
   readonly RetroIcon = Monitor;
@@ -69,8 +70,10 @@ export class DashboardComponent implements OnInit {
   newProjectData = {
     title: '',
     description: '',
-    coverColor: '#6366f1'
+    coverColor: '#6366f1',
+    coverUrl: ''
   };
+  suggestedColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444']; 
 
   showChapterModal: boolean = false;
   newChapterData = { title: '', number: 1 };
@@ -120,6 +123,7 @@ export class DashboardComponent implements OnInit {
       description: this.newProjectData.description,
       ownerId: parseInt(userId),
       coverColor: this.newProjectData.coverColor,
+      coverUrl: this.newProjectData.coverUrl,
       chapters: []
     };
 
@@ -141,7 +145,7 @@ export class DashboardComponent implements OnInit {
 
   showNewProjectForm() {
     this.viewMode = 'form';
-    this.newProjectData = { title: '', description: '', coverColor: '#6366f1' };
+    this.newProjectData = { title: '', description: '', coverColor: '#6366f1', coverUrl: '' };
   }
 
   showGrid() {
@@ -161,29 +165,35 @@ export class DashboardComponent implements OnInit {
   }
 
   onSaveChapter() {
-    if (!this.selectedProject) return;
+  if (!this.selectedProject) return;
 
-    const chapterPayload = {
-      title: this.newChapterData.title,
-      order: this.newChapterData.number,
-      projectId: this.selectedProject.id
-    };
+  // CORREÇÃO: Usar 'ProjectId' com 'P' maiúsculo para coincidir com o Backend
+  const chapterPayload = {
+    Title: this.newChapterData.title,
+    Order: this.newChapterData.number,
+    ProjectId: this.selectedProject.Id || this.selectedProject.id 
+  };
 
-    this.project.addChapter(chapterPayload).subscribe({
-      next: () => {
-        this.project.getProject(this.selectedProject.id).subscribe({
-          next: (updatedProject) => {
-            this.selectedProject = updatedProject;
-            this.loadProjects();
-          },
-        });
-        this.closeChapterModal();
-      },
-      error: (err) => {
-        console.error('Erro na API:', err);
-      },
-    });
-  }
+  console.log('A enviar capítulo:', chapterPayload); // Para debug
+
+  this.project.addChapter(chapterPayload).subscribe({
+    next: (res) => {
+      console.log('Capítulo adicionado com sucesso:', res);
+      // Atualiza o projeto selecionado para mostrar o novo capítulo na lista
+      this.project.getProject(chapterPayload.ProjectId).subscribe({
+        next: (updatedProject) => {
+          this.selectedProject = updatedProject;
+          this.loadProjects();
+        },
+      });
+      this.closeChapterModal();
+    },
+    error: (err) => {
+      console.error('Erro detalhado da API:', err);
+      alert('Erro ao adicionar capítulo. Verifica a consola para mais detalhes.');
+    },
+  });
+}
 
   deleteChapter(chapter: any) {
     if (confirm(`Queres mesmo apagar o capítulo "${chapter.title}"?`)) {
@@ -222,42 +232,75 @@ export class DashboardComponent implements OnInit {
     this.updateWordCount();
   }
 
+  //! NAO FUNCIONA, tenho de arranjar ASAP
   saveChapterContent() {
-    if (!this.selectedChapter || !this.selectedProject) return;
+  const chapterId = this.selectedChapter.Id || this.selectedChapter.id;
+  const projectId = this.selectedProject.Id || this.selectedProject.id;
 
-    const payload = {
-      id: this.selectedChapter.id,
-      title: this.selectedChapter.title,
-      order: this.selectedChapter.order,
-      content: this.selectedChapter.content,
-      projectId: this.selectedProject.id
-    };
-
-    this.project.updateChapter(payload).subscribe({
-      next: () => {
-        this.isSaved = true;
-        this.project.getProject(this.selectedProject.id).subscribe(p => {
-          this.selectedProject = p;
-        });
-        console.log('Capítulo e lista atualizados!');
-      },
-      error: (err) => {
-        console.error('Erro ao guardar capítulo:', err);
-        alert('Erro ao guardar. Verifica a ligação à API.');
-      },
-    });
+  if (!chapterId || !projectId) {
+    console.error('Erro: ID do capítulo ou do projeto não encontrado', { chapterId, projectId });
+    alert('Erro interno: Não foi possível identificar o capítulo.');
+    return;
   }
+
+  const payload = {
+    Id: chapterId,
+    Title: this.selectedChapter.Title,
+    Order: this.selectedChapter.Order,
+    Content: this.selectedChapter.Content,
+    ProjectId: projectId
+  };
+
+  console.log('A guardar capítulo no URL:', `https://localhost:7257/api/Chapters/${chapterId}` );
+  console.log('Payload enviado:', payload);
+
+  this.project.updateChapter(payload).subscribe({
+    next: () => {
+      this.isSaved = true;
+      console.log('Capítulo guardado com sucesso!');
+      this.project.getProject(projectId).subscribe(p => {
+        this.selectedProject = p;
+      });
+    },
+    error: (err) => {
+      console.error('Erro ao guardar capítulo:', err);
+      alert('Erro ao guardar. Verifica a consola para ver os detalhes da validação.');
+    },
+  });
+}
+
 
   goToSettings() {
     this.viewMode = 'settings';
   }
 
-  //todo Ter um espaço de personalização do perfil
+  //TODO: Ter um espaço de personalização do perfil
   updateUserProfile() {
-    console.log('atualizatings the profiles');
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+
+    const payload = {
+      Id: userId,
+      Username: this.username,
+      ProfilePicture: this.newAvatarUrl,
+      PreferredTheme: this.currentTheme
+    };
+
+    this.project.updateUserProfile(userId, payload).subscribe({
+      next: () => {
+        alert('Perfil atualizado com sucesso!');
+        // Podes atualizar o avatar local aqui se quiseres
+      },
+      error: (err) => console.error('Erro ao atualizar perfil:', err)
+    });
   }
 
-  // todo De momento não funciona de todo, tenho de mexer no backend e na base de dados para incluir espaços de 'prefered-theme' ou algo assim
+  // Método para selecionar cor da capa
+  setCoverColor(color: string) {
+    this.newProjectData.coverColor = color;
+  }
+
+  // TODO: De momento funcionao, tenho de melhorar
   setTheme(theme: string) {
     this.currentTheme = theme;
     const body = document.body;

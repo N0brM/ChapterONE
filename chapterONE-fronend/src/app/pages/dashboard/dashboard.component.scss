@@ -36,7 +36,8 @@ $sidebar: var(--sidebar-bg, #ffffff);
   .btn-save-zen,
   .btn-tool,
   .btn-exit,
-  .btn-toggle-sidebar {
+  .btn-toggle-sidebar,
+  .btn-save-profile {
     border: 2px solid !important;
     border-color: #ffffff #808080 #808080 #ffffff !important;
     border-radius: 0 !important;
@@ -75,7 +76,8 @@ $sidebar: var(--sidebar-bg, #ffffff);
   .modal-card,
   .btn-settings,
   .zen-toolbar,
-  .paper-sheet {
+  .paper-sheet,
+  .btn-save-profile {
     border: 1px solid #00ff00 !important;
     border-radius: 0 !important;
     background-color: #000000 !important;
@@ -202,6 +204,15 @@ $sidebar: var(--sidebar-bg, #ffffff);
     transform: translateY(-2px);
   }
 
+  .project-cover-preview {
+    height: 120px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: $accent;
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
   .project-info {
     h3 {
       margin: 0 0 0.5rem 0;
@@ -303,6 +314,25 @@ $sidebar: var(--sidebar-bg, #ffffff);
     textarea {
       min-height: 120px;
       resize: vertical;
+    }
+
+    /* Estilos para o Seletor de Cores */
+    .color-picker {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+      
+      .color-option {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: transform 0.2s;
+        
+        &:hover { transform: scale(1.1); }
+        &.selected { border-color: $text; transform: scale(1.1); }
+      }
     }
   }
 
@@ -498,7 +528,6 @@ $sidebar: var(--sidebar-bg, #ffffff);
   justify-content: center;
   align-items: center;
   z-index: 2000;
-  backdrop-filter: blur(4px);
 }
 
 .modal-card {
@@ -740,8 +769,7 @@ $sidebar: var(--sidebar-bg, #ffffff);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   min-height: 1200px;
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
 
   .paper-divider {
     position: absolute;
@@ -786,6 +814,54 @@ $sidebar: var(--sidebar-bg, #ffffff);
       color: $text-muted;
       margin: 0;
     }
+  }
+
+  /* Estilos para a Edição de Perfil */
+  .profile-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background-color: $bg;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 1rem;
+
+    .preview-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid $accent;
+    }
+
+    .avatar-input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid $border;
+      border-radius: 8px;
+      background-color: $card;
+      color: $text;
+    }
+  }
+
+  /* Botão de Guardar Perfil */
+  .btn-save-profile {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background-color: $accent;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    
+    &:hover { background-color: $accent-hover; }
   }
 }
 

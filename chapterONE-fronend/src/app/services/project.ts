@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 })
 export class Project {
   private apiUrl = `${environment.apiUrl}/api/Projects`;
+  private usersUrl = `${environment.apiUrl}/api/Users`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,5 +34,9 @@ export class Project {
 
   updateChapter(chapter: any): Observable<any> {
     return this.http.put(`${environment.apiUrl}/api/Chapters/${chapter.id}`, chapter );
+  }
+
+  updateUserProfile(userId: string | number, userData: any): Observable<any> {
+    return this.http.put(`${this.usersUrl}/${userId}`, userData );
   }
 }
