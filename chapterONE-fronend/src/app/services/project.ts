@@ -13,11 +13,11 @@ export class Project {
   constructor(private http: HttpClient) {}
 
   getUserProjects(userId: string | number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}` );
+    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
   }
 
   getProject(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}` );
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
   createProject(projectData: any): Observable<any> {
@@ -25,7 +25,7 @@ export class Project {
   }
 
   addChapter(chapter: any): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/api/Chapters`, chapter );
+    return this.http.post(`${environment.apiUrl}/api/Chapters`, chapter);
   }
 
   deleteChapter(chapterId: number): Observable<any> {
@@ -33,10 +33,16 @@ export class Project {
   }
 
   updateChapter(chapter: any): Observable<any> {
-    return this.http.put(`${environment.apiUrl}/api/Chapters/${chapter.id}`, chapter );
+    return this.http.put(`${environment.apiUrl}/api/Chapters/${chapter.id}`, chapter);
   }
 
   updateUserProfile(userId: string | number, userData: any): Observable<any> {
-    return this.http.put(`${this.usersUrl}/${userId}`, userData );
+    return this.http.put(`${this.usersUrl}/${userId}`, userData);
+  }
+
+  uploadProfilePicture(userId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${environment.apiUrl}/api/Upload/profile-picture/${userId}`, formData);
   }
 }

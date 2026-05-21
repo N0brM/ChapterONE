@@ -23,7 +23,7 @@ import {
   Sun,
   Moon,
   Monitor,
-  Terminal
+  Terminal,
 } from 'lucide-angular';
 
 @Component({
@@ -71,9 +71,21 @@ export class DashboardComponent implements OnInit {
     title: '',
     description: '',
     coverColor: '#6366f1',
-    coverUrl: ''
+    coverUrl: '',
   };
-  suggestedColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444']; 
+  suggestedColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
+
+  isEditingProfile: boolean = false;
+  editUserData = {
+    username: '',
+    email: '',
+  };
+
+  originalUserData = {
+    username: '',
+    email: '',
+    profilePicture: '',
+  };
 
   showChapterModal: boolean = false;
   newChapterData = { title: '', number: 1 };
@@ -91,10 +103,24 @@ export class DashboardComponent implements OnInit {
     const savedTheme = localStorage.getItem('selected-theme') || 'modern-light';
     this.setTheme(savedTheme);
 
+    this.editUserData.username = this.username || '';
+    this.editUserData.email = this.authService.getUserEmail() || '';
+    this.originalUserData = {
+      username: this.editUserData.username,
+      email: this.editUserData.email,
+      profilePicture: this.newAvatarUrl,
+    };
+
     this.username = this.authService.getUsername();
     if (!this.username) {
       this.router.navigate(['/login']);
       return;
+    }
+
+    const savedPhoto = this.authService.getProfilePicture();
+    if (savedPhoto) {
+      const timestamp = new Date().getTime();
+      this.newAvatarUrl = `https://localhost:7257${savedPhoto}`;
     }
 
     this.loadProjects();
@@ -124,7 +150,7 @@ export class DashboardComponent implements OnInit {
       ownerId: parseInt(userId),
       coverColor: this.newProjectData.coverColor,
       coverUrl: this.newProjectData.coverUrl,
-      chapters: []
+      chapters: [],
     };
 
     this.project.createProject(payload).subscribe({
@@ -165,35 +191,35 @@ export class DashboardComponent implements OnInit {
   }
 
   onSaveChapter() {
-  if (!this.selectedProject) return;
+    if (!this.selectedProject) return;
 
-  // CORREÇÃO: Usar 'ProjectId' com 'P' maiúsculo para coincidir com o Backend
-  const chapterPayload = {
-    Title: this.newChapterData.title,
-    Order: this.newChapterData.number,
-    ProjectId: this.selectedProject.Id || this.selectedProject.id 
-  };
+    // CORREÇÃO: Usar 'ProjectId' com 'P' maiúsculo para coincidir com o Backend
+    const chapterPayload = {
+      Title: this.newChapterData.title,
+      Order: this.newChapterData.number,
+      ProjectId: this.selectedProject.Id || this.selectedProject.id,
+    };
 
-  console.log('A enviar capítulo:', chapterPayload); // Para debug
+    console.log('A enviar capítulo:', chapterPayload); // Para debug
 
-  this.project.addChapter(chapterPayload).subscribe({
-    next: (res) => {
-      console.log('Capítulo adicionado com sucesso:', res);
-      // Atualiza o projeto selecionado para mostrar o novo capítulo na lista
-      this.project.getProject(chapterPayload.ProjectId).subscribe({
-        next: (updatedProject) => {
-          this.selectedProject = updatedProject;
-          this.loadProjects();
-        },
-      });
-      this.closeChapterModal();
-    },
-    error: (err) => {
-      console.error('Erro detalhado da API:', err);
-      alert('Erro ao adicionar capítulo. Verifica a consola para mais detalhes.');
-    },
-  });
-}
+    this.project.addChapter(chapterPayload).subscribe({
+      next: (res) => {
+        console.log('Capítulo adicionado com sucesso:', res);
+        // Atualiza o projeto selecionado para mostrar o novo capítulo na lista
+        this.project.getProject(chapterPayload.ProjectId).subscribe({
+          next: (updatedProject) => {
+            this.selectedProject = updatedProject;
+            this.loadProjects();
+          },
+        });
+        this.closeChapterModal();
+      },
+      error: (err) => {
+        console.error('Erro detalhado da API:', err);
+        alert('Erro ao adicionar capítulo. Verifica a consola para mais detalhes.');
+      },
+    });
+  }
 
   deleteChapter(chapter: any) {
     if (confirm(`Queres mesmo apagar o capítulo "${chapter.title}"?`)) {
@@ -234,41 +260,40 @@ export class DashboardComponent implements OnInit {
 
   //! NAO FUNCIONA, tenho de arranjar ASAP
   saveChapterContent() {
-  const chapterId = this.selectedChapter.Id || this.selectedChapter.id;
-  const projectId = this.selectedProject.Id || this.selectedProject.id;
+    const chapterId = this.selectedChapter.Id || this.selectedChapter.id;
+    const projectId = this.selectedProject.Id || this.selectedProject.id;
 
-  if (!chapterId || !projectId) {
-    console.error('Erro: ID do capítulo ou do projeto não encontrado', { chapterId, projectId });
-    alert('Erro interno: Não foi possível identificar o capítulo.');
-    return;
+    if (!chapterId || !projectId) {
+      console.error('Erro: ID do capítulo ou do projeto não encontrado', { chapterId, projectId });
+      alert('Erro interno: Não foi possível identificar o capítulo.');
+      return;
+    }
+
+    const payload = {
+      Id: chapterId,
+      Title: this.selectedChapter.Title,
+      Order: this.selectedChapter.Order,
+      Content: this.selectedChapter.Content,
+      ProjectId: projectId,
+    };
+
+    console.log('A guardar capítulo no URL:', `https://localhost:7257/api/Chapters/${chapterId}`);
+    console.log('Payload enviado:', payload);
+
+    this.project.updateChapter(payload).subscribe({
+      next: () => {
+        this.isSaved = true;
+        console.log('Capítulo guardado com sucesso!');
+        this.project.getProject(projectId).subscribe((p) => {
+          this.selectedProject = p;
+        });
+      },
+      error: (err) => {
+        console.error('Erro ao guardar capítulo:', err);
+        alert('Erro ao guardar. Verifica a consola para ver os detalhes da validação.');
+      },
+    });
   }
-
-  const payload = {
-    Id: chapterId,
-    Title: this.selectedChapter.Title,
-    Order: this.selectedChapter.Order,
-    Content: this.selectedChapter.Content,
-    ProjectId: projectId
-  };
-
-  console.log('A guardar capítulo no URL:', `https://localhost:7257/api/Chapters/${chapterId}` );
-  console.log('Payload enviado:', payload);
-
-  this.project.updateChapter(payload).subscribe({
-    next: () => {
-      this.isSaved = true;
-      console.log('Capítulo guardado com sucesso!');
-      this.project.getProject(projectId).subscribe(p => {
-        this.selectedProject = p;
-      });
-    },
-    error: (err) => {
-      console.error('Erro ao guardar capítulo:', err);
-      alert('Erro ao guardar. Verifica a consola para ver os detalhes da validação.');
-    },
-  });
-}
-
 
   goToSettings() {
     this.viewMode = 'settings';
@@ -281,17 +306,24 @@ export class DashboardComponent implements OnInit {
 
     const payload = {
       Id: userId,
-      Username: this.username,
+      Username: this.editUserData.username,
+      Email: this.editUserData.email,
       ProfilePicture: this.newAvatarUrl,
-      PreferredTheme: this.currentTheme
+      PreferredTheme: this.currentTheme,
     };
 
     this.project.updateUserProfile(userId, payload).subscribe({
       next: () => {
+        // Atualiza os dados locais após o sucesso
+        this.username = this.editUserData.username;
+        localStorage.setItem('username', this.editUserData.username);
+        localStorage.setItem('email', this.editUserData.email);
         alert('Perfil atualizado com sucesso!');
-        // Podes atualizar o avatar local aqui se quiseres
       },
-      error: (err) => console.error('Erro ao atualizar perfil:', err)
+      error: (err) => {
+        console.error('Erro ao atualizar perfil:', err);
+        alert('Erro ao atualizar o perfil. Tenta novamente.');
+      },
     });
   }
 
@@ -313,6 +345,44 @@ export class DashboardComponent implements OnInit {
 
     localStorage.setItem('selected-theme', theme);
     console.log('Tema alterado para: ' + theme);
+  }
+
+  // Para abrir file explorer
+  triggerProfileUpload() {
+    const fileInput = document.getElementById('profileInput') as HTMLInputElement;
+    fileInput.click();
+  }
+
+  // Quando selecionas a foto, ela é enviada para a API
+  onProfilePictureSelected(event: any) {
+    const file: File = event.target.files[0];
+    const userId = this.authService.getUserId();
+
+    if (file && userId) {
+      this.project.uploadProfilePicture(parseInt(userId), file).subscribe({
+        next: (res: any) => {
+          const timestamp = new Date().getTime();
+          this.newAvatarUrl = `https://localhost:7257${res.url}`;
+
+          localStorage.setItem('profilePicture', res.url);
+
+          alert('Foto de perfil atualizada com sucesso!');
+        },
+        error: (err) => {
+          console.error('Erro no upload:', err);
+          alert('Erro ao carregar a imagem.');
+        },
+      });
+    }
+  }
+
+  hasProfileChanges(): boolean {
+    return (
+      this.editUserData.username !== this.originalUserData.username ||
+      this.editUserData.email !== this.originalUserData.email ||
+      this.newAvatarUrl !== this.originalUserData.profilePicture ||
+      this.currentTheme !== localStorage.getItem('selected-theme')
+    );
   }
 
   onLogout() {

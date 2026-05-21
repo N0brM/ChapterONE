@@ -343,3 +343,4 @@ C:\Users\Nobre\Desktop\ChapterONE\ChapterONE\chapterONE-backend\ChapterONE.API\o
 C:\Users\Nobre\Desktop\ChapterONE\ChapterONE\chapterONE-backend\ChapterONE.API\obj\Debug\net8.0\ChapterONE.API.pdb
 C:\Users\Nobre\Desktop\ChapterONE\ChapterONE\chapterONE-backend\ChapterONE.API\obj\Debug\net8.0\ChapterONE.API.genruntimeconfig.cache
 C:\Users\Nobre\Desktop\ChapterONE\ChapterONE\chapterONE-backend\ChapterONE.API\obj\Debug\net8.0\ref\ChapterONE.API.dll
+C:\Users\sebas\Desktop\ChapterONE\chapterONE-backend\ChapterONE.API\bin\Debug\net8.0\ChapterONE.API.staticwebassets.runtime.json

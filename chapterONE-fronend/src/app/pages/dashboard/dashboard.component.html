@@ -3,7 +3,11 @@
     <a (click)="showGrid()" class="logo" style="cursor: pointer">ChapterONE</a>
     <div class="user-menu">
       <!--! nao funciona por agora -->
-      <img [src]="newAvatarUrl || '../assets/default-avatar.png'" class="user-avatar" alt="Profile" />
+      <img
+        [src]="newAvatarUrl || '../assets/default-avatar.png'"
+        class="user-avatar"
+        alt="Profile"
+      />
       <span>Heya, {{ username }}!</span>
       <!-- botao dos settings -->
       <button (click)="goToSettings()" class="btn-settings" title="Definições">
@@ -77,13 +81,13 @@
           <div class="form-group">
             <label>Cor da Capa</label>
             <div class="color-picker">
-              <div 
-                *ngFor="let color of suggestedColors" 
-                class="color-option" 
+              <div
+                *ngFor="let color of suggestedColors"
+                class="color-option"
                 [style.background-color]="color"
                 [class.selected]="newProjectData.coverColor === color"
-                (click)="setCoverColor(color)">
-              </div>
+                (click)="setCoverColor(color)"
+              ></div>
             </div>
           </div>
           <!--
@@ -113,7 +117,10 @@
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
         <div class="book-cover" [style.background-color]="selectedProject.CoverColor || '#6366f1'">
-          <img [src]="selectedProject.CoverUrl || '../assets/default-cover.png'" alt="Capa do Livro" />
+          <img
+            [src]="selectedProject.CoverUrl || '../assets/default-cover.png'"
+            alt="Capa do Livro"
+          />
           <!--! NAO FUNCIONAAAA -->
         </div>
 
@@ -259,55 +266,103 @@
     <div *ngIf="viewMode === 'settings'" class="settings-view">
       <div class="settings-card">
         <div class="settings-header">
-          <h2>Definições</h2>
-          <p>Personaliza a tua experiência no ChapterONE</p>
+          <h2>Definições de Conta</h2>
+          <p>Gere as tuas informações pessoais e preferências.</p>
         </div>
 
         <div class="settings-body">
-          <div class="setting-group">
-            <label>Tema da Interface</label>
+          <!-- Secção de Perfil -->
+          <div class="settings-section">
+            <div class="profile-setup">
+              <div class="avatar-wrapper">
+                <img
+                  [src]="newAvatarUrl || 'assets/default-avatar.png'"
+                  class="main-avatar"
+                  alt="Profile"
+                />
+                <!-- Botão de alterar agora é um ícone flutuante no canto, não tapa a foto -->
+                <label for="avatar-upload" class="avatar-edit-btn" title="Alterar Foto">
+                  <lucide-icon [name]="EditIcon" [size]="14"></lucide-icon>
+                </label>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  (change)="onProfilePictureSelected($event)"
+                  hidden
+                />
+              </div>
+              <div class="profile-text">
+                <h3>{{ username }}</h3>
+                <p>Conta ChapterONE</p>
+              </div>
+            </div>
+
+            <div class="edit-grid">
+              <div class="form-group">
+                <label>Nome de Utilizador</label>
+                <input type="text" [(ngModel)]="editUserData.username" placeholder="Teu username" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="editUserData.email" placeholder="Teu email" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Secção de Temas -->
+          <div class="settings-section">
+            <label class="section-label">Tema da Interface</label>
             <div class="theme-grid">
-              <!-- Perfect -->
               <button
                 (click)="setTheme('modern-light')"
                 [class.active]="currentTheme === 'modern-light'"
               >
-                Modern Light
+                <div class="theme-preview light"></div>
+                <span>Modern Light</span>
               </button>
-              <!-- Perfect -->
               <button
                 (click)="setTheme('dark-theme')"
-                [class.active]="currentTheme === 'modern-dark'"
+                [class.active]="currentTheme === 'dark-theme'"
               >
-                Modern Dark
+                <div class="theme-preview dark"></div>
+                <span>Modern Dark</span>
               </button>
-              <!--! need to make more blocky and busy-->
               <button
                 (click)="setTheme('retro-light')"
                 [class.active]="currentTheme === 'retro-light'"
               >
-                Retro Silver (Win98)
+                <div class="theme-preview retro"></div>
+                <span>Windows 98</span>
               </button>
-              <!--! could be better-->
               <button
                 (click)="setTheme('retro-dark')"
                 [class.active]="currentTheme === 'retro-dark'"
               >
-                Retro Terminal (Green)
+                <div class="theme-preview terminal"></div>
+                <span>Terminal</span>
               </button>
             </div>
           </div>
 
-          <hr class="settings-divider" />
+          <div class="settings-actions">
+            <button
+              class="btn-save-main"
+              (click)="updateUserProfile()"
+              [disabled]="!hasProfileChanges() || !editUserData.username"
+            >
+              <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon>
+              Guardar Alterações
+            </button>
 
-          <button class="btn-logout-big" (click)="onLogout()">
-            <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
-            Terminar Sessão
-          </button>
+            <button class="btn-logout-outline" (click)="onLogout()">
+              <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
+              Terminar Sessão
+            </button>
+          </div>
         </div>
 
         <div class="settings-footer">
-          <button class="btn-back" (click)="showGrid()">Voltar ao Dashboard</button>
+          <button class="btn-link" (click)="showGrid()">Voltar ao Dashboard</button>
         </div>
       </div>
     </div>

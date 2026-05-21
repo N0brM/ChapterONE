@@ -51,4 +51,6 @@ app.UseCors("AllowAngularApp");
 
 app.MapControllers();
 
+app.UseStaticFiles(); // Isto permite que o Angular consiga ler as imagens da pasta wwwroot
+
 app.Run();
