@@ -4,7 +4,6 @@
     <div class="user-menu">
       <img [src]="newAvatarUrl || 'assets/default-avatar.png'" class="user-avatar" alt="Profile" />
       <span>Heya, {{ username }}!</span>
-      <!-- botao dos settings -->
       <button (click)="goToSettings()" class="btn-settings" title="Definições">
         <lucide-icon [name]="SettingsIcon" [size]="20"></lucide-icon>
       </button>
@@ -12,7 +11,7 @@
   </nav>
 
   <main class="main-content">
-    <!-- Lista dos projetos -->
+    <!-- ====== GRID DE PROJETOS ====== -->
     <div *ngIf="viewMode === 'grid'">
       <div class="header-section">
         <h2>Os Meus Projetos</h2>
@@ -21,38 +20,77 @@
           <span>Novo Projeto</span>
         </button>
       </div>
+
       <div class="projects-grid" *ngIf="projects.length > 0; else emptyState">
         <div class="project-card" *ngFor="let project of projects" (click)="openProject(project)">
+          <!-- Barra de cor da capa -->
+          <div
+            class="card-cover-bar"
+            [style.background-color]="project.CoverColor || '#6366f1'"
+          ></div>
+
           <div class="project-info">
-            <h3>{{ project.Title }}</h3>
+            <div class="project-title-row">
+              <h3>{{ project.Title }}</h3>
+              <span class="type-badge"
+                >{{ getTypeEmoji(project.ProjectType) }} {{ project.ProjectType || 'Livro' }}</span
+              >
+            </div>
             <p>{{ project.Description || 'Sem descrição disponível' }}</p>
           </div>
+
           <div class="project-footer">
-            <span class="chapters-count">{{ project.chaptersCount || 0 }} Capítulos</span>
-            <span class="last-edit">Atualizado recentemente</span>
+            <span class="chapters-count">{{ project.Chapters?.length || 0 }} Capítulos</span>
+            <div class="card-actions" (click)="$event.stopPropagation()">
+              <button
+                class="btn-icon delete"
+                (click)="deleteProject(project, $event)"
+                title="Apagar projeto"
+              >
+                <lucide-icon [name]="TrashIcon" [size]="15"></lucide-icon>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      <!-- Obrigado a quem me sugeriu e ensinou isto -->
+
       <ng-template #emptyState>
         <div class="empty-state">
           <h3>Ainda não tens nenhum projeto</h3>
           <p>Começa a escrever a tua próxima grande história agora mesmo!</p>
           <button (click)="showNewProjectForm()" class="btn-new-project">
-            <span>Criar Primeiro Livro</span>
+            <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+            <span>Criar Primeiro Projeto</span>
           </button>
         </div>
       </ng-template>
     </div>
 
-    <!-- New projeto -->
+    <!-- ====== FORMULÁRIO NOVO PROJETO ====== -->
     <div *ngIf="viewMode === 'form'" class="form-view">
       <div class="form-card">
         <div class="header">
           <h2>Criar Novo Projeto</h2>
           <p>Preenche os detalhes da tua próxima grande história.</p>
         </div>
-        <form (submit)="onCreateProject()" class="project-form">
+
+        <form (ngSubmit)="onCreateProject()" class="project-form">
+          <!-- Tipo de projeto -->
+          <div class="form-group">
+            <label>Tipo de Projeto</label>
+            <div class="type-selector">
+              <button
+                type="button"
+                *ngFor="let t of projectTypes"
+                [class.selected]="newProjectData.type === t.value"
+                (click)="newProjectData.type = t.value"
+              >
+                {{ t.emoji }} {{ t.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Título -->
           <div class="form-group">
             <label for="title">Título do Projeto</label>
             <input
@@ -60,22 +98,39 @@
               id="title"
               [(ngModel)]="newProjectData.title"
               name="title"
-              placeholder="Ex: O senhor sem aneis"
+              placeholder="Ex: O senhor sem anéis"
               required
             />
           </div>
+
+          <!-- Descrição -->
           <div class="form-group">
             <label for="description">Descrição</label>
             <textarea
               id="description"
               [(ngModel)]="newProjectData.description"
               name="description"
-              placeholder="Sobre o que é este livro"
+              placeholder="Sobre o que é este projeto?"
             ></textarea>
           </div>
+
+          <!-- Cor da capa -->
+          <div class="form-group">
+            <label>Cor da Capa</label>
+            <div class="color-picker">
+              <div
+                *ngFor="let color of suggestedColors"
+                class="color-option"
+                [style.background-color]="color"
+                [class.selected]="newProjectData.coverColor === color"
+                (click)="setCoverColor(color)"
+              ></div>
+            </div>
+          </div>
+
           <div class="actions">
             <button type="button" class="btn-cancel" (click)="showGrid()">Cancelar</button>
-            <button type="submit" class="btn-submit" [disabled]="!newProjectData.title">
+            <button type="submit" class="btn-submit" [disabled]="!newProjectData.title.trim()">
               Criar Projeto
             </button>
           </div>
@@ -83,11 +138,11 @@
       </div>
     </div>
 
-    <!--DETALHES DO PROJETO-->
+    <!-- ====== DETALHES DO PROJETO ====== -->
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
-        <div class="book-cover">
-          <img [src]="selectedProject.CoverUrl || 'assets/default-cover.png'" alt="Capa do Livro" />
+        <div class="book-cover" [style.background-color]="selectedProject.CoverColor || '#6366f1'">
+          <span class="cover-type-emoji">{{ getTypeEmoji(selectedProject.ProjectType) }}</span>
         </div>
 
         <h2 class="project-title">{{ selectedProject.Title }}</h2>
@@ -95,13 +150,19 @@
 
         <div class="stats-container">
           <div class="stat-item">
+            <span class="stat-label">Tipo</span>
+            <span class="stat-value">{{ selectedProject.ProjectType || 'Livro' }}</span>
+          </div>
+          <div class="stat-item">
             <span class="stat-label">Colaboradores</span>
             <span class="stat-value">{{ selectedProject.Collaborators?.length || 0 }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Criado em</span>
-            <span>{{
-              selectedProject.CreatedAt ? (selectedProject.CreatedAt | date: 'dd/MM/yyyy') : '---'
+            <span class="stat-value">{{
+              selectedProject.CreationDate
+                ? (selectedProject.CreationDate | date: 'dd/MM/yyyy')
+                : '---'
             }}</span>
           </div>
         </div>
@@ -110,27 +171,38 @@
       </aside>
 
       <section class="chapters-section">
-        <h3>Selecione o seu capítulo</h3>
+        <h3>Seleciona o teu capítulo</h3>
         <div class="chapters-list">
           <div class="chapter-item" *ngFor="let chapter of selectedProject.Chapters; let i = index">
             <span class="chapter-name">
-              Chapter {{ chapter.Number || i + 1 }} - "{{ chapter.Title }}"
+              Capítulo {{ chapter.Order || i + 1 }} — "{{ chapter.Title }}"
             </span>
+            <div class="chapter-meta" *ngIf="chapter.WordCount > 0">
+              <span class="chapter-words">{{ chapter.WordCount }} palavras</span>
+            </div>
             <div class="chapter-actions">
-              <button class="btn-icon edit" (click)="editChapter(chapter)">
-                <lucide-icon [name]="EditIcon" [size]="18"></lucide-icon>
+              <button class="btn-icon edit" (click)="editChapter(chapter)" title="Editar">
+                <lucide-icon [name]="EditIcon" [size]="16"></lucide-icon>
               </button>
-              <button class="btn-icon delete" (click)="deleteChapter(chapter)">
-                <lucide-icon [name]="TrashIcon" [size]="18"></lucide-icon>
+              <button class="btn-icon delete" (click)="deleteChapter(chapter)" title="Apagar">
+                <lucide-icon [name]="TrashIcon" [size]="16"></lucide-icon>
               </button>
             </div>
           </div>
+
+          <div *ngIf="!selectedProject.Chapters?.length" class="no-chapters">
+            Ainda não há capítulos. Cria o primeiro!
+          </div>
         </div>
-        <button class="btn-add-chapter" (click)="openAddChapterModal()">+</button>
+
+        <button class="btn-add-chapter" (click)="openAddChapterModal()">
+          <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+          Novo Capítulo
+        </button>
       </section>
     </div>
 
-    <!--novo chap-->
+    <!-- ====== MODAL NOVO CAPÍTULO ====== -->
     <div class="modal-overlay" *ngIf="showChapterModal">
       <div class="modal-card">
         <div class="modal-header">
@@ -140,142 +212,260 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Nome do Capítulo</label>
-            <input type="text" [(ngModel)]="newChapterData.title" placeholder="Nome do capítulo" />
+            <input
+              type="text"
+              [(ngModel)]="newChapterData.title"
+              placeholder="Nome do capítulo"
+              autofocus
+            />
           </div>
           <div class="form-group">
             <label>Número do Capítulo</label>
-            <input
-              type="number"
-              [(ngModel)]="newChapterData.number"
-              placeholder="{{ selectedChapter.Order }}"
-            />
+            <input type="number" [(ngModel)]="newChapterData.number" min="1" />
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" (click)="closeChapterModal()">Cancelar</button>
-          <button class="btn-save" (click)="onSaveChapter()" [disabled]="!newChapterData.title">
+          <button
+            class="btn-save"
+            (click)="onSaveChapter()"
+            [disabled]="!newChapterData.title.trim()"
+          >
             Adicionar
           </button>
         </div>
       </div>
     </div>
 
-    <!--editor-->
+    <!-- ====== EDITOR RICH TEXT ====== -->
     <div
       *ngIf="viewMode === 'editor' && selectedChapter"
       class="zen-editor"
       [class.sidebar-open]="isSideBarOpen"
     >
-      <!--navbar -->
+      <!-- Toolbar -->
       <header class="zen-toolbar">
         <div class="left-actions">
-          <button class="btn-exit" (click)="viewMode = 'details'">
+          <button class="btn-exit" (click)="viewMode = 'details'" title="Fechar editor">
             <lucide-icon [name]="CloseIcon" [size]="20"></lucide-icon>
           </button>
-          <button class="btn-toggle-sidebar" (click)="toggleSidebar()">
+          <button class="btn-toggle-sidebar" (click)="toggleSidebar()" title="Capítulos">
             <lucide-icon [name]="SidebarIcon" [size]="20"></lucide-icon>
           </button>
-          <span class="chapter-title"
-            >Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}</span
-          >
+          <span class="chapter-title">
+            Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}
+          </span>
         </div>
+
+        <!-- Ferramentas de formatação -->
         <div class="format-tools">
-          <button class="btn-tool">
+          <!-- Tamanho do texto -->
+          <select
+            class="font-size-select"
+            (change)="format('fontSize', $any($event.target).value)"
+            title="Tamanho do texto"
+          >
+            <option value="">Tamanho</option>
+            <option value="2">Pequeno</option>
+            <option value="3">Normal</option>
+            <option value="4">Médio</option>
+            <option value="5">Grande</option>
+            <option value="7">Título</option>
+          </select>
+
+          <div class="tools-divider"></div>
+
+          <button
+            class="btn-tool"
+            [class.active]="isBold"
+            (click)="format('bold')"
+            title="Negrito (Ctrl+B)"
+          >
             <lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon>
           </button>
-          <button class="btn-tool italic">
+          <button
+            class="btn-tool"
+            [class.active]="isItalic"
+            (click)="format('italic')"
+            title="Itálico (Ctrl+I)"
+          >
             <lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon>
           </button>
-          <button class="btn-tool underline">
+          <button
+            class="btn-tool"
+            [class.active]="isUnderline"
+            (click)="format('underline')"
+            title="Sublinhado (Ctrl+U)"
+          >
             <lucide-icon [name]="UnderlineIcon" [size]="16"></lucide-icon>
           </button>
+
+          <div class="tools-divider"></div>
+
+          <button class="btn-tool" (click)="format('justifyLeft')" title="Alinhar à esquerda">
+            <lucide-icon [name]="AlignLeftIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool" (click)="format('justifyCenter')" title="Centrar">
+            <lucide-icon [name]="AlignCenterIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool" (click)="format('justifyRight')" title="Alinhar à direita">
+            <lucide-icon [name]="AlignRightIcon" [size]="16"></lucide-icon>
+          </button>
+
+          <div class="tools-divider"></div>
+
+          <button class="btn-tool" (click)="format('undo')" title="Desfazer (Ctrl+Z)">
+            <lucide-icon [name]="UndoIcon" [size]="16"></lucide-icon>
+          </button>
         </div>
+
         <div class="right-actions">
           <span class="word-count">{{ wordCount }} palavras</span>
           <span class="save-status" [class.saved]="isSaved">
-            {{ isSaved ? 'saved' : 'saving...' }}
+            {{ isSaved ? '✓ guardado' : 'a guardar...' }}
           </span>
-          <button class="btn-save-zen" (click)="saveChapterContent()">Guardar</button>
+          <button class="btn-save-zen" (click)="saveChapterContent()">
+            <lucide-icon [name]="SaveIcon" [size]="16"></lucide-icon>
+            Guardar
+          </button>
         </div>
       </header>
+
       <div class="editor-container">
-        <!--mega sidebar moderna type stuff-->
+        <!-- Sidebar com lista de capítulos -->
         <aside class="zen-sidebar">
           <h3>Capítulos</h3>
           <ul class="zen-chapters-list">
             <li
-              *ngFor="let chap of selectedProject.Chapters"
-              [class.active]="chap.Id === selectedChapter.Id"
+              *ngFor="let chap of selectedProject?.Chapters"
+              [class.active]="(chap.Id ?? chap.id) === (selectedChapter.Id ?? selectedChapter.id)"
               (click)="editChapter(chap)"
             >
+              <span class="chap-order">{{ chap.Order }}.</span>
               {{ chap.Title }}
             </li>
           </ul>
         </aside>
-        <!-- Área da Folha de Papel -->
+
+        <!-- Folha de papel -->
         <main class="zen-main">
           <div class="paper-sheet">
             <div class="paper-divider"></div>
-            <textarea
+            <!-- Rich text editor — contenteditable em vez de textarea -->
+            <div
+              #richEditor
               class="paper-content"
-              [(ngModel)]="selectedChapter.Content"
-              (input)="onContentChange()"
-              placeholder="..."
-              spellcheck="false"
-            >
-            </textarea>
+              contenteditable="true"
+              (input)="syncEditorContent()"
+              (keyup)="updateFormatState()"
+              (mouseup)="updateFormatState()"
+              spellcheck="true"
+            ></div>
           </div>
         </main>
       </div>
     </div>
+
+    <!-- ====== SETTINGS ====== -->
     <div *ngIf="viewMode === 'settings'" class="settings-view">
       <div class="settings-card">
         <div class="settings-header">
-          <h2>Definições</h2>
-          <p>Personaliza a tua experiência no ChapterONE</p>
+          <h2>Definições de Conta</h2>
+          <p>Gere as tuas informações pessoais e preferências.</p>
         </div>
 
         <div class="settings-body">
-          <div class="setting-group">
-            <label>Tema da Interface</label>
+          <!-- Foto de perfil + dados -->
+          <div class="settings-section">
+            <div class="profile-setup">
+              <div class="avatar-wrapper">
+                <img
+                  [src]="newAvatarUrl || 'assets/default-avatar.png'"
+                  class="main-avatar"
+                  alt="Profile"
+                />
+                <label for="avatar-upload" class="avatar-edit-btn" title="Alterar Foto">
+                  <lucide-icon [name]="EditIcon" [size]="14"></lucide-icon>
+                </label>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  (change)="onProfilePictureSelected($event)"
+                  hidden
+                />
+              </div>
+              <div class="profile-text">
+                <h3>{{ username }}</h3>
+                <p>Conta ChapterONE</p>
+              </div>
+            </div>
+
+            <div class="edit-grid">
+              <div class="form-group">
+                <label>Nome de Utilizador</label>
+                <input type="text" [(ngModel)]="editUserData.username" placeholder="Teu username" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="editUserData.email" placeholder="Teu email" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Temas -->
+          <div class="settings-section">
+            <label class="section-label">Tema da Interface</label>
             <div class="theme-grid">
               <button
                 (click)="setTheme('modern-light')"
                 [class.active]="currentTheme === 'modern-light'"
               >
-                Modern Light
+                <div class="theme-preview light"></div>
+                <span>Modern Light</span>
               </button>
               <button
-                (click)="setTheme('modern-dark')"
-                [class.active]="currentTheme === 'modern-dark'"
+                (click)="setTheme('dark-theme')"
+                [class.active]="currentTheme === 'dark-theme'"
               >
-                Modern Dark
+                <div class="theme-preview dark"></div>
+                <span>Modern Dark</span>
               </button>
               <button
                 (click)="setTheme('retro-light')"
                 [class.active]="currentTheme === 'retro-light'"
               >
-                Retro Silver (Win98)
+                <div class="theme-preview retro"></div>
+                <span>Windows 98</span>
               </button>
               <button
                 (click)="setTheme('retro-dark')"
                 [class.active]="currentTheme === 'retro-dark'"
               >
-                Retro Terminal (Green)
+                <div class="theme-preview terminal"></div>
+                <span>Terminal</span>
               </button>
             </div>
           </div>
 
-          <hr class="settings-divider" />
-
-          <button class="btn-logout-big" (click)="onLogout()">
-            <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
-            Terminar Sessão
-          </button>
+          <div class="settings-actions">
+            <button
+              class="btn-save-main"
+              (click)="updateUserProfile()"
+              [disabled]="!hasProfileChanges() || !editUserData.username"
+            >
+              <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon>
+              Guardar Alterações
+            </button>
+            <button class="btn-logout-outline" (click)="onLogout()">
+              <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
+              Terminar Sessão
+            </button>
+          </div>
         </div>
 
         <div class="settings-footer">
-          <button class="btn-back" (click)="showGrid()">Voltar ao Dashboard</button>
+          <button class="btn-link" (click)="showGrid()">← Voltar ao Dashboard</button>
         </div>
       </div>
     </div>

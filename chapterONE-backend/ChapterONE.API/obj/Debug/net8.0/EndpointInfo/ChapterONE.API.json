@@ -84,14 +84,14 @@
         }
       }
     },
-    "/api/Chapters/project/{projectId}": {
+    "/api/Chapters/{id}": {
       "get": {
         "tags": [
           "Chapters"
         ],
         "parameters": [
           {
-            "name": "projectId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -106,65 +106,23 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Chapter"
-                  }
+                  "$ref": "#/components/schemas/Chapter"
                 }
               }
             }
           }
         }
-      }
-    },
-    "/api/Chapters": {
-      "post": {
-        "tags": [
-          "Chapters"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Chapter"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/Chapters/{id}": {
+      },
       "put": {
         "tags": [
           "Chapters"
@@ -223,6 +181,54 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Chapters": {
+      "post": {
+        "tags": [
+          "Chapters"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chapter"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chapter"
+                }
+              }
+            }
           }
         }
       }
@@ -378,6 +384,46 @@
           }
         }
       },
+      "put": {
+        "tags": [
+          "Projects"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
       "delete": {
         "tags": [
           "Projects"
@@ -447,6 +493,112 @@
           }
         }
       }
+    },
+    "/api/Upload/profile-picture/{userId}": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -484,6 +636,25 @@
           },
           "Project": {
             "$ref": "#/components/schemas/Project"
+          },
+          "WordCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReadingTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PredominantEmotion": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "LastAnalysisDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -504,7 +675,6 @@
       },
       "Project": {
         "required": [
-          "CreationDate",
           "OwnerId",
           "Title"
         ],
@@ -515,7 +685,7 @@
             "format": "int32"
           },
           "Title": {
-            "maxLength": 100,
+            "maxLength": 200,
             "minLength": 0,
             "type": "string"
           },
@@ -533,6 +703,24 @@
           },
           "Owner": {
             "$ref": "#/components/schemas/User"
+          },
+          "CoverColor": {
+            "maxLength": 7,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "CoverImage": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "ProjectType": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "Chapters": {
             "type": "array",
@@ -579,6 +767,24 @@
         },
         "additionalProperties": false
       },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "Username": {
+            "type": "string",
+            "nullable": true
+          },
+          "Email": {
+            "type": "string",
+            "nullable": true
+          },
+          "PreferredTheme": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "User": {
         "required": [
           "Email",
@@ -610,10 +816,29 @@
             "type": "string",
             "format": "date-time"
           },
+          "PreferredTheme": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "ProfilePicture": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
           "OwnedProjects": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Project"
+            },
+            "nullable": true
+          },
+          "Collaborations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectCollaborator"
             },
             "nullable": true
           }

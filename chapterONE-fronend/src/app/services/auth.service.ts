@@ -22,6 +22,10 @@ export class AuthService {
   saveUserData(userData: any) {
     localStorage.setItem('userId', userData.userId);
     localStorage.setItem('username', userData.username);
+    localStorage.setItem('email', userData.email);
+    if (userData.profilePicture) {
+      localStorage.setItem('profilePicture', userData.profilePicture);
+    }
   }
 
   getUserId() {
@@ -30,6 +34,14 @@ export class AuthService {
 
   getUsername() {
     return localStorage.getItem('username');
+  }
+
+  getUserEmail() {
+    return localStorage.getItem('email');
+  }
+
+  getProfilePicture() {
+    return localStorage.getItem('profilePicture');
   }
 
   logout() {

@@ -56,9 +56,9 @@ namespace ChapterONE.API.Controllers
             return Ok(new
             {
                 userId = user.Id,
-                username = user.Username
+                username = user.Username,
+                profilePicture = user.ProfilePicture
             });
         }
-
     }
 }
