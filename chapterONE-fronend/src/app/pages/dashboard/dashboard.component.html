@@ -11,7 +11,7 @@
   </nav>
 
   <main class="main-content">
-    <!-- ====== GRID DE PROJETOS ====== -->
+    <!-- Project grid -->
     <div *ngIf="viewMode === 'grid'">
       <div class="header-section">
         <h2>Os Meus Projetos</h2>
@@ -66,7 +66,6 @@
       </ng-template>
     </div>
 
-    <!-- ====== FORMULÁRIO NOVO PROJETO ====== -->
     <div *ngIf="viewMode === 'form'" class="form-view">
       <div class="form-card">
         <div class="header">
@@ -138,7 +137,6 @@
       </div>
     </div>
 
-    <!-- ====== DETALHES DO PROJETO ====== -->
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
         <div class="book-cover" [style.background-color]="selectedProject.CoverColor || '#6366f1'">
@@ -237,7 +235,7 @@
       </div>
     </div>
 
-    <!-- ====== EDITOR RICH TEXT ====== -->
+    <!-- Editor -->
     <div
       *ngIf="viewMode === 'editor' && selectedChapter"
       class="zen-editor"
@@ -351,7 +349,6 @@
         <main class="zen-main">
           <div class="paper-sheet">
             <div class="paper-divider"></div>
-            <!-- Rich text editor — contenteditable em vez de textarea -->
             <div
               #richEditor
               class="paper-content"
@@ -366,7 +363,7 @@
       </div>
     </div>
 
-    <!-- ====== SETTINGS ====== -->
+    <!--Settings-->
     <div *ngIf="viewMode === 'settings'" class="settings-view">
       <div class="settings-card">
         <div class="settings-header">

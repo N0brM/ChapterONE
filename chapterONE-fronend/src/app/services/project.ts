@@ -11,6 +11,7 @@ export class Project {
   private chapUrl = `${environment.apiUrl}/api/Chapters`;
   private usersUrl = `${environment.apiUrl}/api/Users`;
   private uploadUrl = `${environment.apiUrl}/api/Upload`;
+    private aiUrl     = `${environment.apiUrl}/api/AI`;
 
   constructor(private http: HttpClient) {}
 
@@ -69,5 +70,17 @@ export class Project {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post(`${this.uploadUrl}/profile-picture/${userId}`, formData);
+  }
+
+  //AI
+  analyzeText(text: string): Observable<any> {
+    // Remove tags HTML antes de enviar
+    const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return this.http.post(`${this.aiUrl}/analyze`, { Text: cleanText });
+  }
+
+  assistWriting(text: string, question: string): Observable<any> {
+    const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return this.http.post(`${this.aiUrl}/assist`, { Text: cleanText, Question: question });
   }
 }
