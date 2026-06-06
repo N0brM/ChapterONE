@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
+// ADICIONADO: Importar o AiService e as interfaces
+import { AiService, TextAnalysisResult, ImproveTextResult } from '../../services/ai.service';
 import {
   LucideAngularModule,
   Edit2,
@@ -36,6 +38,12 @@ import {
   Book,
   Film,
   Tv,
+  Lightbulb,
+  Wand2,
+  MessageSquareText,
+  BookOpen,
+  Palette,
+  User
 } from 'lucide-angular';
 
 @Component({
@@ -73,6 +81,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly FilmIcon       = Film;
   readonly TvIcon         = Tv;
 
+  readonly LightbulbIcon = Lightbulb;
+  readonly SparklesIcon = Wand2;
+  readonly MessageSquareTextIcon = MessageSquareText;
+  readonly BookOpenIcon = BookOpen;
+  readonly PaletteIcon = Palette;
+  readonly UserIcon = User;
+
   username: string | null = '';
   projects: any[] = [];
   newAvatarUrl: string = '';
@@ -96,6 +111,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { value: 'Filme',  label: 'Filme',  emoji: '🎬' },
   ];
 
+  //coisas para AI
+  showAiPanel: boolean = false;
+  aiLoading: boolean = false;
+  aiAnalysisResult: TextAnalysisResult | null = null;
+  aiImprovementType: 'grammar' | 'vocabulary' | 'style' = 'grammar';
+
   newProjectData = {
     title: '',
     description: '',
@@ -112,6 +133,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private authService: AuthService,
+    private aiService: AiService,
     private project: Project,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -420,6 +442,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.originalUserData.profilePicture = this.newAvatarUrl;
       },
       error: (err) => console.error('Erro no upload:', err),
+    });
+  }
+
+  toggleAiPanel() {
+    this.showAiPanel = !this.showAiPanel;
+    // Se o painel for aberto e houver um capítulo selecionado, analisa-o
+    if (this.showAiPanel && this.selectedChapter && this.selectedChapter.Content) {
+      this.analyzeCurrentChapter();
+    }
+  }
+
+  analyzeCurrentChapter() {
+    if (!this.selectedChapter || !this.selectedChapter.Content) {
+      this.aiAnalysisResult = null;
+      return;
+    }
+
+    this.aiLoading = true;
+    this.aiService.analyzeText(this.selectedChapter.Content).subscribe({
+      next: (result) => {
+        this.aiAnalysisResult = result;
+        this.aiLoading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao analisar texto com IA:', err);
+        this.aiLoading = false;
+        this.aiAnalysisResult = null;
+        alert('Erro ao analisar texto. Verifica a ligação à API de IA.');
+      }
+    });
+  }
+
+  improveCurrentChapter() {
+    if (!this.selectedChapter || !this.selectedChapter.Content || !this.aiImprovementType) {
+      return;
+    }
+
+    this.aiLoading = true;
+    this.aiService.improveText(this.selectedChapter.Content, this.aiImprovementType).subscribe({
+      next: (result) => {
+        this.selectedChapter.Content = result.improvedText;
+        this.isSaved = false; // Marcar como não guardado para o socio salvar
+        this.aiLoading = false;
+
+        if (this.richEditor) {
+          this.richEditor.nativeElement.innerHTML = result.improvedText;
+          this.updateWordCount();
+        }
+
+        alert('Texto melhorado com sucesso! Não te esqueças de guardar.');
+      },
+      error: (err) => {
+        console.error('Erro ao melhorar texto com IA:', err);
+        this.aiLoading = false;
+        alert('Erro ao melhorar texto. Verifica a ligação à API de IA.');
+      }
     });
   }
 
