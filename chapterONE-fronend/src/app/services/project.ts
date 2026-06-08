@@ -83,4 +83,49 @@ export class Project {
     const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     return this.http.post(`${this.aiUrl}/assist`, { Text: cleanText, Question: question });
   }
+
+  //! SignalR
+  private collabUrl = `${environment.apiUrl}/api/Collaborators`;
+
+  // Lista colaboradores de um projeto
+  getCollaborators(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.collabUrl}/${projectId}`);
+  }
+
+  // Adiciona colaborador por username (só o dono)
+  addCollaboratorByUsername(
+    projectId: number,
+    requestingUserId: number,
+    username: string
+  ): Observable<any> {
+    return this.http.post(`${this.collabUrl}/add-by-username`, {
+      ProjectId:        projectId,
+      RequestingUserId: requestingUserId,
+      Username:         username,
+    });
+  }
+
+  // Entra num projeto com código de convite
+  joinProjectByCode(userId: number, code: string): Observable<any> {
+    return this.http.post(`${this.collabUrl}/join`, { UserId: userId, Code: code });
+  }
+
+  // Remove colaborador
+  removeCollaborator(
+    projectId: number,
+    userId: number,
+    requestingUserId: number
+  ): Observable<any> {
+    return this.http.delete(
+      `${this.collabUrl}/${projectId}/${userId}?requestingUserId=${requestingUserId}`
+    );
+  }
+
+  // Gera novo código de convite
+  regenerateInviteCode(projectId: number, requestingUserId: number): Observable<any> {
+    return this.http.post(
+      `${this.collabUrl}/regenerate-code/${projectId}?requestingUserId=${requestingUserId}`,
+      {}
+    );
+  }
 }

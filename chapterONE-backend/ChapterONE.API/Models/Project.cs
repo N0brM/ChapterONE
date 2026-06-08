@@ -26,11 +26,24 @@ namespace ChapterONE.API.Models
         [StringLength(255)]
         public string? CoverImage { get; set; }
 
-        // "Livro", "Serie", "Filme" — padrão é Livro
         [StringLength(50)]
-        public string? ProjectType { get; set; } = "Livro";
+        public string ProjectType { get; set; } = "Livro";
+
+        // Código único de convite — gerado automaticamente ao criar o projeto
+        [StringLength(8)]
+        public string InviteCode { get; set; } = GenerateCode();
 
         public virtual ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
         public virtual ICollection<ProjectCollaborator> Collaborators { get; set; } = new List<ProjectCollaborator>();
+
+        // Gera um código de 8 caracteres alfanuméricos em maiúsculas
+        public static string GenerateCode()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var rng = new Random();
+            return new string(Enumerable.Range(0, 8)
+                .Select(_ => chars[rng.Next(chars.Length)])
+                .ToArray());
+        }
     }
 }

@@ -15,6 +15,10 @@
     <div *ngIf="viewMode === 'grid'">
       <div class="header-section">
         <h2>Os Meus Projetos</h2>
+        <button (click)="openJoinModal()" class="btn-join-code">
+          <lucide-icon [name]="LinkIcon" [size]="18"></lucide-icon>
+          Entrar com Código
+        </button>
         <button (click)="showNewProjectForm()" class="btn-new-project">
           <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
           <span>Novo Projeto</span>
@@ -193,6 +197,11 @@
           </div>
         </div>
 
+        <button class="btn-collab" (click)="openCollabModal()">
+          <lucide-icon [name]="UsersIcon" [size]="18"></lucide-icon>
+          Gerir Colaboradores
+        </button>
+
         <button class="btn-add-chapter" (click)="openAddChapterModal()">
           <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
           Novo Capítulo
@@ -230,6 +239,130 @@
             [disabled]="!newChapterData.title.trim()"
           >
             Adicionar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" *ngIf="showCollabModal">
+      <div class="modal-card modal-collab">
+        <div class="modal-header">
+          <h3>Colaboradores</h3>
+          <button class="btn-icon" (click)="closeCollabModal()">
+            <lucide-icon [name]="CloseIcon" [size]="18"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="collab-tabs">
+          <button [class.active]="collabTab === 'invite'" (click)="collabTab = 'invite'">
+            Convidar
+          </button>
+          <button [class.active]="collabTab === 'members'" (click)="collabTab = 'members'">
+            Membros ({{ collaborators.length }})
+          </button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Tab: Convidar -->
+          <div *ngIf="collabTab === 'invite'">
+
+            <!-- Código de convite -->
+            <div class="invite-code-section">
+              <label>Código de Convite</label>
+              <p class="invite-hint">Partilha este código com quem queres convidar.</p>
+              <div class="invite-code-box">
+                <span class="invite-code">{{ selectedProject?.InviteCode }}</span>
+                <button class="btn-copy" (click)="copyInviteCode()" title="Copiar código">
+                  <lucide-icon [name]="CopyIcon" [size]="16"></lucide-icon>
+                </button>
+                <button class="btn-regen" (click)="regenerateCode()" *ngIf="isOwner()" title="Gerar novo código">
+                  <lucide-icon [name]="RefreshIcon" [size]="16"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="invite-divider">ou adiciona por username</div>
+
+            <!-- Adicionar por username (só o dono) -->
+            <div *ngIf="isOwner()" class="invite-username-section">
+              <div class="invite-input-row">
+                <input
+                  type="text"
+                  [(ngModel)]="inviteUsername"
+                  placeholder="Username do utilizador"
+                  (keydown.enter)="addCollaboratorByUsername()"
+                />
+                <button
+                  class="btn-add-collab"
+                  (click)="addCollaboratorByUsername()"
+                  [disabled]="inviteLoading || !inviteUsername.trim()"
+                >
+                  {{ inviteLoading ? '...' : 'Adicionar' }}
+                </button>
+              </div>
+              <p class="invite-success" *ngIf="inviteSuccess">✓ {{ inviteSuccess }}</p>
+              <p class="invite-error"   *ngIf="inviteError">⚠ {{ inviteError }}</p>
+            </div>
+          </div>
+
+          <!-- Tab: Membros -->
+          <div *ngIf="collabTab === 'members'">
+            <div *ngIf="collaborators.length === 0" class="no-collabs">
+              Ainda não há colaboradores neste projeto.
+            </div>
+            <div class="collab-list">
+              <div class="collab-item" *ngFor="let c of collaborators">
+                <div class="collab-avatar-sm" [style.background-color]="'#6366f1'">
+                  {{ c.Username?.charAt(0).toUpperCase() }}
+                </div>
+                <div class="collab-info">
+                  <span class="collab-name">{{ c.Username }}</span>
+                  <span class="collab-role">{{ c.Role }}</span>
+                </div>
+                <button
+                  class="btn-icon delete"
+                  (click)="removeCollaborator(c)"
+                  *ngIf="isOwner()"
+                  title="Remover"
+                >
+                  <lucide-icon [name]="TrashIcon" [size]="15"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" *ngIf="showJoinModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Entrar num Projeto</h3>
+          <p>Introduz o código de convite que recebeste.</p>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Código de Convite</label>
+            <input
+              type="text"
+              [(ngModel)]="joinCode"
+              placeholder="Ex: AB3X7KPQ"
+              (keydown.enter)="joinProjectByCode()"
+              style="text-transform: uppercase; letter-spacing: 4px; font-size: 1.1rem;"
+            />
+            <p class="invite-error" *ngIf="joinError">⚠ {{ joinError }}</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeJoinModal()">Cancelar</button>
+          <button
+            class="btn-save"
+            (click)="joinProjectByCode()"
+            [disabled]="joinLoading || !joinCode.trim()"
+          >
+            {{ joinLoading ? 'A entrar...' : 'Entrar' }}
           </button>
         </div>
       </div>
@@ -288,6 +421,26 @@
         </div>
 
         <div class="right-actions">
+          <!-- colaboradores online -->
+          <div class="collab-presence" *ngIf="activeCollaborators.length > 0">
+            <div
+              class="collab-avatar"
+              *ngFor="let collab of activeCollaborators"
+              [style.background-color]="collab.color"
+              [title]="collab.username + ' está a editar'"
+            >
+              {{ collab.username.charAt(0).toUpperCase() }}
+            </div>
+            <span class="collab-count">
+              {{ activeCollaborators.length }} online
+            </span>
+          </div>
+
+          <!-- status -->
+          <div class="collab-status" [class.connected]="isCollabConnected" [title]="isCollabConnected ? 'Colaboração ativa' : 'Modo offline'">
+            <span class="status-dot"></span>
+          </div>
+
           <button class="btn-ai-toggle" (click)="toggleAiPanel()" [class.active]="showAiPanel">
             <lucide-icon [name]="SparklesIcon" [size]="18"></lucide-icon>
             <span>IA</span>

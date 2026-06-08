@@ -295,7 +295,30 @@
         }
       }
     },
-    "/api/Collaborators": {
+    "/api/Collaborators/{projectId}": {
+      "get": {
+        "tags": [
+          "Collaborators"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Collaborators/add-by-username": {
       "post": {
         "tags": [
           "Collaborators"
@@ -304,17 +327,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectCollaborator"
+                "$ref": "#/components/schemas/AddByUsernameRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectCollaborator"
+                "$ref": "#/components/schemas/AddByUsernameRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectCollaborator"
+                "$ref": "#/components/schemas/AddByUsernameRequest"
               }
             }
           }
@@ -326,7 +349,38 @@
         }
       }
     },
-    "/api/Collaborators/project/{projectId}/user/{userId}": {
+    "/api/Collaborators/join": {
+      "post": {
+        "tags": [
+          "Collaborators"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinByCodeRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinByCodeRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinByCodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Collaborators/{projectId}/{userId}": {
       "delete": {
         "tags": [
           "Collaborators"
@@ -345,6 +399,45 @@
             "name": "userId",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "requestingUserId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Collaborators/regenerate-code/{projectId}": {
+      "post": {
+        "tags": [
+          "Collaborators"
+        ],
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "requestingUserId",
+            "in": "query",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -665,6 +758,24 @@
   },
   "components": {
     "schemas": {
+      "AddByUsernameRequest": {
+        "type": "object",
+        "properties": {
+          "ProjectId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "RequestingUserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Username": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "Chapter": {
         "required": [
           "Order",
@@ -735,6 +846,20 @@
         },
         "additionalProperties": false
       },
+      "JoinByCodeRequest": {
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "LoginRequest": {
         "type": "object",
         "properties": {
@@ -794,6 +919,12 @@
           },
           "ProjectType": {
             "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "InviteCode": {
+            "maxLength": 8,
             "minLength": 0,
             "type": "string",
             "nullable": true

@@ -164,15 +164,15 @@
   },
   {
     "ContainingType": "ChapterONE.API.Controllers.CollaboratorsController",
-    "Method": "AddCollaborator",
-    "RelativePath": "api/Collaborators",
-    "HttpMethod": "POST",
+    "Method": "GetCollaborators",
+    "RelativePath": "api/Collaborators/{projectId}",
+    "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "collaborator",
-        "Type": "ChapterONE.API.Models.ProjectCollaborator",
+        "Name": "projectId",
+        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -181,7 +181,7 @@
   {
     "ContainingType": "ChapterONE.API.Controllers.CollaboratorsController",
     "Method": "RemoveCollaborator",
-    "RelativePath": "api/Collaborators/project/{projectId}/user/{userId}",
+    "RelativePath": "api/Collaborators/{projectId}/{userId}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -195,6 +195,64 @@
         "Name": "userId",
         "Type": "System.Int32",
         "IsRequired": true
+      },
+      {
+        "Name": "requestingUserId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.CollaboratorsController",
+    "Method": "AddByUsername",
+    "RelativePath": "api/Collaborators/add-by-username",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ChapterONE.API.Controllers.AddByUsernameRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.CollaboratorsController",
+    "Method": "JoinByCode",
+    "RelativePath": "api/Collaborators/join",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ChapterONE.API.Controllers.JoinByCodeRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.CollaboratorsController",
+    "Method": "RegenerateCode",
+    "RelativePath": "api/Collaborators/regenerate-code/{projectId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "projectId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "requestingUserId",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

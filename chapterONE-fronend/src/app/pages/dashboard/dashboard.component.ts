@@ -11,8 +11,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
-// ADICIONADO: Importar o AiService e as interfaces
 import { AiService, TextAnalysisResult, ImproveTextResult } from '../../services/ai.service';
+import { CollaborationService, CollabUser } from '../../services/collaboration.service';
+import { Subscription } from 'rxjs';
 import {
   LucideAngularModule,
   Edit2,
@@ -43,7 +44,11 @@ import {
   MessageSquareText,
   BookOpen,
   Palette,
-  User
+  User,
+  Users,
+  Link,
+  Copy,
+  RefreshCw
 } from 'lucide-angular';
 
 @Component({
@@ -88,6 +93,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly PaletteIcon = Palette;
   readonly UserIcon = User;
 
+  readonly UsersIcon   = Users;
+  readonly LinkIcon    = Link;
+  readonly CopyIcon    = Copy;
+  readonly RefreshIcon = RefreshCw;
+
   username: string | null = '';
   projects: any[] = [];
   newAvatarUrl: string = '';
@@ -111,6 +121,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { value: 'Filme',  label: 'Filme',  emoji: '🎬' },
   ];
 
+  activeCollaborators: CollabUser[] = [];
+  isCollabConnected: boolean = false;
+  private lastLocalEdit: number = 0;
+  private collabSendTimer: any;
+  private collabSubs: Subscription[] = [];
+
   //coisas para AI
   showAiPanel: boolean = false;
   aiLoading: boolean = false;
@@ -125,6 +141,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   };
   suggestedColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
 
+  showCollabModal: boolean = false;
+  collabTab: 'invite' | 'members' = 'invite';
+  collaborators: any[] = [];
+  inviteUsername: string = '';
+  inviteLoading: boolean = false;
+  inviteError: string = '';
+  inviteSuccess: string = '';
+
+  // Entrar com código (no dashboard)
+  showJoinModal: boolean = false;
+  joinCode: string = '';
+  joinLoading: boolean = false;
+  joinError: string = '';
+
+
   editUserData   = { username: '', email: '' };
   originalUserData = { username: '', email: '', profilePicture: '' };
 
@@ -135,6 +166,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private aiService: AiService,
     private project: Project,
+    private collabService: CollaborationService, 
     private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -170,6 +202,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     clearTimeout(this.autoSaveTimer);
+    clearTimeout(this.collabSendTimer);
+    this.collabSubs.forEach(s => s.unsubscribe());
+    if (this.selectedChapter) {
+      const id = this.selectedChapter.Id ?? this.selectedChapter.id;
+      this.collabService.leaveChapter(id);
+    }
+    this.collabService.disconnect();
   }
 
   loadProjects() {
@@ -284,6 +323,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   editChapter(chapter: any) {
+    // Se estava noutro capítulo, sai do grupo anterior
+    if (this.selectedChapter) {
+      const oldId = this.selectedChapter.Id ?? this.selectedChapter.id;
+      this.collabService.leaveChapter(oldId);
+      this.collabSubs.forEach(s => s.unsubscribe());
+      this.collabSubs = [];
+    }
+
     this.selectedChapter = { ...chapter };
     this.isSaved = true;
 
@@ -296,11 +343,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     } else {
       this.viewMode = 'editor';
-      this.cdr.detectChanges(); 
+      this.cdr.detectChanges();
       if (this.richEditor) {
         this.richEditor.nativeElement.innerHTML = content;
         this.updateWordCount();
       }
+    }
+
+    // Liga ao SignalR para este capítulo
+    this.startCollaboration(chapter);
+  }
+
+  private async startCollaboration(chapter: any) {
+    const chapterId = chapter.Id ?? chapter.id;
+    const userId    = parseInt(this.authService.getUserId() || '0');
+    const username  = this.username || 'Anónimo';
+
+    try {
+      await this.collabService.connect(chapterId, userId, username);
+      this.isCollabConnected = true;
+
+      // Recebe texto de outros colaboradores
+      this.collabSubs.push(
+        this.collabService.textReceived$.subscribe(({ content, userId: remoteId }) => {
+          if (remoteId === userId) return; // ignora o próprio
+
+          // Só aplica se o utilizador não estiver a escrever ativamente
+          const idle = Date.now() - this.lastLocalEdit > 1500;
+          if (idle && this.richEditor) {
+            this.richEditor.nativeElement.innerHTML = content;
+            this.selectedChapter.Content = content;
+            this.updateWordCount();
+          }
+        })
+      );
+
+      // Atualiza lista de colaboradores presentes
+      this.collabSubs.push(
+        this.collabService.activeUsers$.subscribe(users => {
+          this.activeCollaborators = users;
+        })
+      );
+      this.collabSubs.push(
+        this.collabService.userJoined$.subscribe(user => {
+          if (!this.activeCollaborators.find(u => u.userId === user.userId))
+            this.activeCollaborators = [...this.activeCollaborators, user];
+        })
+      );
+      this.collabSubs.push(
+        this.collabService.userLeft$.subscribe(({ userId: leftId }) => {
+          this.activeCollaborators = this.activeCollaborators.filter(u => u.userId !== leftId);
+        })
+      );
+
+    } catch (err) {
+      console.warn('SignalR não disponível — modo offline:', err);
+      this.isCollabConnected = false;
     }
   }
 
@@ -311,9 +409,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.updateWordCount();
     this.updateFormatState();
 
-    // Auto-save: guarda 2 segundos depois da última tecla
+    // Regista quando o utilizador escreveu pela última vez (para o lock de colaboração)
+    this.lastLocalEdit = Date.now();
+
+    // Auto-save: 2 segundos após a última tecla
     clearTimeout(this.autoSaveTimer);
     this.autoSaveTimer = setTimeout(() => this.saveChapterContent(), 2000);
+
+    // Envia para colaboradores: 500ms após a última tecla (mais rápido que o save)
+    clearTimeout(this.collabSendTimer);
+    this.collabSendTimer = setTimeout(() => {
+      const chapterId = this.selectedChapter?.Id ?? this.selectedChapter?.id;
+      const userId    = parseInt(this.authService.getUserId() || '0');
+      if (chapterId && this.isCollabConnected) {
+        this.collabService.sendTextUpdate(
+          chapterId,
+          this.selectedChapter.Content,
+          userId
+        );
+      }
+    }, 500);
   }
 
   updateWordCount() {
@@ -498,6 +613,133 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.aiLoading = false;
         alert('Erro ao melhorar texto. Verifica a ligação à API de IA.');
       }
+    });
+  }
+
+  openCollabModal() {
+    this.showCollabModal = true;
+    this.collabTab       = 'invite';
+    this.inviteError     = '';
+    this.inviteSuccess   = '';
+    this.inviteUsername  = '';
+    this.loadCollaborators();
+  }
+
+  closeCollabModal() {
+    this.showCollabModal = false;
+  }
+
+  loadCollaborators() {
+    const projectId = this.selectedProject?.Id ?? this.selectedProject?.id;
+    if (!projectId) return;
+
+    this.project.getCollaborators(projectId).subscribe({
+      next: (list) => { this.collaborators = list; },
+      error: (err)  => console.error('Erro ao carregar colaboradores:', err),
+    });
+  }
+
+  addCollaboratorByUsername() {
+    if (!this.inviteUsername.trim()) return;
+    const projectId = this.selectedProject?.Id ?? this.selectedProject?.id;
+    const userId    = parseInt(this.authService.getUserId() || '0');
+
+    this.inviteLoading = true;
+    this.inviteError   = '';
+    this.inviteSuccess = '';
+
+    this.project.addCollaboratorByUsername(projectId, userId, this.inviteUsername.trim())
+      .subscribe({
+        next: (newCollab) => {
+          this.collaborators = [...this.collaborators, newCollab];
+          this.inviteSuccess = `${newCollab.Username} adicionado com sucesso!`;
+          this.inviteUsername = '';
+          this.inviteLoading  = false;
+          // Atualiza o projeto para refletir o novo colaborador
+          this.project.getProject(projectId).subscribe(p => this.selectedProject = p);
+        },
+        error: (err) => {
+          this.inviteError   = err.error || 'Erro ao adicionar colaborador.';
+          this.inviteLoading = false;
+        },
+      });
+  }
+
+  removeCollaborator(collab: any) {
+    const projectId       = this.selectedProject?.Id ?? this.selectedProject?.id;
+    const requestingUserId = parseInt(this.authService.getUserId() || '0');
+    const targetUserId    = collab.UserId ?? collab.userId;
+
+    if (!confirm(`Remover ${collab.Username} do projeto?`)) return;
+
+    this.project.removeCollaborator(projectId, targetUserId, requestingUserId).subscribe({
+      next: () => {
+        this.collaborators = this.collaborators.filter(
+          c => (c.UserId ?? c.userId) !== targetUserId
+        );
+        this.project.getProject(projectId).subscribe(p => this.selectedProject = p);
+      },
+      error: (err) => console.error('Erro ao remover colaborador:', err),
+    });
+  }
+
+  copyInviteCode() {
+    const code = this.selectedProject?.InviteCode;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      this.inviteSuccess = 'Código copiado!';
+      setTimeout(() => this.inviteSuccess = '', 2000);
+    });
+  }
+
+  regenerateCode() {
+    const projectId = this.selectedProject?.Id ?? this.selectedProject?.id;
+    const userId    = parseInt(this.authService.getUserId() || '0');
+    if (!confirm('Gerar novo código? O código atual deixará de funcionar.')) return;
+
+    this.project.regenerateInviteCode(projectId, userId).subscribe({
+      next: (res) => {
+        this.selectedProject.InviteCode = res.InviteCode;
+      },
+      error: (err) => console.error('Erro ao regenerar código:', err),
+    });
+  }
+
+  isOwner(): boolean {
+    const userId    = parseInt(this.authService.getUserId() || '0');
+    const ownerId   = this.selectedProject?.OwnerId ?? this.selectedProject?.ownerId;
+    return userId === ownerId;
+  }
+
+  // Modal para entrar com código (no dashboard)
+  openJoinModal() {
+    this.showJoinModal = true;
+    this.joinCode      = '';
+    this.joinError     = '';
+  }
+
+  closeJoinModal() {
+    this.showJoinModal = false;
+  }
+
+  joinProjectByCode() {
+    if (!this.joinCode.trim()) return;
+    const userId = parseInt(this.authService.getUserId() || '0');
+
+    this.joinLoading = true;
+    this.joinError   = '';
+
+    this.project.joinProjectByCode(userId, this.joinCode.trim()).subscribe({
+      next: (res) => {
+        this.joinLoading = false;
+        this.closeJoinModal();
+        alert(res.Message);
+        this.loadProjects(); // Atualiza o grid com o novo projeto
+      },
+      error: (err) => {
+        this.joinError   = err.error || 'Código inválido ou já és colaborador.';
+        this.joinLoading = false;
+      },
     });
   }
 
