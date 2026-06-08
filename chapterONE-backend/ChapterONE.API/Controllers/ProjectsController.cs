@@ -22,7 +22,7 @@ namespace ChapterONE.API.Controllers
             var projects = await _context.Projects
                 .Include(p => p.Chapters)
                 .Include(p => p.Collaborators)
-                .Where(p => p.OwnerId == ownerId)
+                .Where(p => p.OwnerId == ownerId || p.Collaborators.Any(c => c.UserId == ownerId))
                 .ToListAsync();
 
             foreach (var project in projects)
