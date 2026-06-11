@@ -33,7 +33,7 @@ export class LoginComponent {
 
     this.authService.login(loginPayload).subscribe({
       next: (response: any) => {
-        console.log('Resposta real da API:', response); 
+        console.log('Resposta real da API:', response);
 
         if (response && response.userId) {
           this.authService.saveUserData(response);
@@ -44,7 +44,6 @@ export class LoginComponent {
       },
       error: (err: any) => {
         if (err.status === 200 || err.status === 201) {
-
           const realData = err.error;
           if (realData && realData.userId) {
             this.authService.saveUserData(realData);

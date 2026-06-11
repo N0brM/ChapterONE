@@ -209,7 +209,6 @@
       </section>
     </div>
 
-    
     <div class="modal-overlay" *ngIf="showChapterModal">
       <div class="modal-card">
         <div class="modal-header">
@@ -264,10 +263,8 @@
         </div>
 
         <div class="modal-body">
-
           <!-- Tab: Convidar -->
           <div *ngIf="collabTab === 'invite'">
-
             <!-- Código de convite -->
             <div class="invite-code-section">
               <label>Código de Convite</label>
@@ -277,7 +274,12 @@
                 <button class="btn-copy" (click)="copyInviteCode()" title="Copiar código">
                   <lucide-icon [name]="CopyIcon" [size]="16"></lucide-icon>
                 </button>
-                <button class="btn-regen" (click)="regenerateCode()" *ngIf="isOwner()" title="Gerar novo código">
+                <button
+                  class="btn-regen"
+                  (click)="regenerateCode()"
+                  *ngIf="isOwner()"
+                  title="Gerar novo código"
+                >
                   <lucide-icon [name]="RefreshIcon" [size]="16"></lucide-icon>
                 </button>
               </div>
@@ -303,7 +305,7 @@
                 </button>
               </div>
               <p class="invite-success" *ngIf="inviteSuccess">✓ {{ inviteSuccess }}</p>
-              <p class="invite-error"   *ngIf="inviteError">⚠ {{ inviteError }}</p>
+              <p class="invite-error" *ngIf="inviteError">⚠ {{ inviteError }}</p>
             </div>
           </div>
 
@@ -350,9 +352,9 @@
               [(ngModel)]="joinCode"
               placeholder="Ex: AB3X7KPQ"
               (keydown.enter)="joinProjectByCode()"
-              style="text-transform: uppercase; letter-spacing: 4px; font-size: 1.1rem;"
+              style="text-transform: uppercase; letter-spacing: 4px; font-size: 1.1rem"
             />
-            <p class="invite-error" *ngIf="joinError">⚠ {{ joinError }}</p>
+            <p class="invite-error" *ngIf="joinError">{{ joinError }}</p>
           </div>
         </div>
         <div class="modal-footer">
@@ -391,10 +393,7 @@
 
         <!-- Ferramentas de formatação -->
         <div class="format-tools">
-          <select
-            class="font-size-select"
-            (change)="format('fontSize', $any($event.target).value)"
-          >
+          <select class="font-size-select" (change)="format('fontSize', $any($event.target).value)">
             <option value="">Tamanho</option>
             <option value="3">Normal</option>
             <option value="5">Grande</option>
@@ -409,7 +408,7 @@
           <button class="btn-tool" [class.active]="isItalic" (click)="format('italic')">
             <lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon>
           </button>
-          
+
           <div class="tools-divider"></div>
 
           <button class="btn-tool" (click)="format('justifyLeft')">
@@ -431,13 +430,15 @@
             >
               {{ collab.username.charAt(0).toUpperCase() }}
             </div>
-            <span class="collab-count">
-              {{ activeCollaborators.length }} online
-            </span>
+            <span class="collab-count"> {{ activeCollaborators.length }} online </span>
           </div>
 
           <!-- status -->
-          <div class="collab-status" [class.connected]="isCollabConnected" [title]="isCollabConnected ? 'Colaboração ativa' : 'Modo offline'">
+          <div
+            class="collab-status"
+            [class.connected]="isCollabConnected"
+            [title]="isCollabConnected ? 'Colaboração ativa' : 'Modo offline'"
+          >
             <span class="status-dot"></span>
           </div>
 
@@ -445,12 +446,41 @@
             <lucide-icon [name]="SparklesIcon" [size]="18"></lucide-icon>
             <span>IA</span>
           </button>
-          
+
           <div class="editor-stats">
             <span class="word-count">{{ wordCount }} palavras</span>
             <span class="save-status" [class.saved]="isSaved">
               {{ isSaved ? '✓ guardado' : '...' }}
             </span>
+          </div>
+
+          <div class="export-wrapper">
+            <button
+              class="btn-export"
+              (click)="toggleExportMenu()"
+              [class.active]="showExportMenu"
+              title="Exportar capítulo"
+            >
+              <lucide-icon [name]="DownloadIcon" [size]="16"></lucide-icon>
+              Exportar
+            </button>
+
+            <div class="export-menu" *ngIf="showExportMenu">
+              <button (click)="exportAsTxt()">
+                <lucide-icon [name]="FileTextIcon" [size]="15"></lucide-icon>
+                <div class="export-option-info">
+                  <span>Texto (.txt)</span>
+                  <small>Texto simples sem formatação</small>
+                </div>
+              </button>
+              <button (click)="exportAsPdf()">
+                <lucide-icon [name]="FileIcon" [size]="15"></lucide-icon>
+                <div class="export-option-info">
+                  <span>PDF (.pdf)</span>
+                  <small>Documento formatado para impressão</small>
+                </div>
+              </button>
+            </div>
           </div>
 
           <button class="btn-save-zen" (click)="saveChapterContent()">
@@ -461,7 +491,20 @@
       </header>
 
       <div class="editor-container">
-        <!-- Sidebar com lista de capítulos -->
+        <!-- Sidebar com lista de capítulos e atividade de collabs -->
+         <div class="typing-bar" *ngIf="typingUsers.length > 0">
+          <div class="typing-user" *ngFor="let user of typingUsers">
+            <div class="typing-avatar" [style.background-color]="user.color">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <span class="typing-name" [style.color]="user.color">{{ user.username }}</span>
+            <span class="typing-label">está a escrever</span>
+            <div class="typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
         <aside class="zen-sidebar">
           <h3>Capítulos</h3>
           <ul class="zen-chapters-list">
@@ -500,14 +543,18 @@
               <lucide-icon [name]="CloseIcon" [size]="16"></lucide-icon>
             </button>
           </div>
-          
+
           <div class="ai-panel-content">
             <div class="ai-actions">
-              <button class="btn-ai-action" (click)="analyzeCurrentChapter()" [disabled]="aiLoading">
+              <button
+                class="btn-ai-action"
+                (click)="analyzeCurrentChapter()"
+                [disabled]="aiLoading"
+              >
                 <lucide-icon [name]="SparklesIcon" [size]="16"></lucide-icon>
                 Analisar Texto
               </button>
-              
+
               <div class="ai-improvement-select" *ngIf="!aiLoading">
                 <label>Melhoria:</label>
                 <select [(ngModel)]="aiImprovementType">
@@ -515,7 +562,11 @@
                   <option value="vocabulary">Vocabulário</option>
                   <option value="style">Estilo</option>
                 </select>
-                <button class="btn-ai-action" (click)="improveCurrentChapter()" [disabled]="aiLoading">
+                <button
+                  class="btn-ai-action"
+                  (click)="improveCurrentChapter()"
+                  [disabled]="aiLoading"
+                >
                   <lucide-icon [name]="EditIcon" [size]="16"></lucide-icon>
                   Melhorar
                 </button>
@@ -538,6 +589,11 @@
             </div>
           </div>
         </aside>
+      </div>
+
+      <div class="collab-toast" *ngIf="collabToast" [style.border-left-color]="collabToast.color">
+        <div class="toast-dot" [style.background-color]="collabToast.color"></div>
+        <span>{{ collabToast.message }}</span>
       </div>
     </div>
 

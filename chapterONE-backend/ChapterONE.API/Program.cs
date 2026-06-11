@@ -9,10 +9,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200")
+            .SetIsOriginAllowed(_ => true)
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials(); 
+            .AllowCredentials();
     });
 });
 
@@ -47,14 +47,17 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(); 
 
-app.UseCors("AllowAngularApp"); 
+app.UseStaticFiles();
+
+app.UseCors("AllowAngularApp");
 
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.MapHub<WritingHub>("/hubs/writing");
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
