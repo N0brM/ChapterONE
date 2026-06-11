@@ -13,6 +13,7 @@ namespace ChapterONE.API.Hubs
             "#3b82f6", "#ef4444", "#8b5cf6", "#06b6d4"
         };
 
+        // Utilizador entra num capítulo
         public async Task JoinChapter(int chapterId, int userId, string username)
         {
             var group = GroupName(chapterId);
@@ -21,10 +22,10 @@ namespace ChapterONE.API.Hubs
             var user = new CollabUser
             {
                 ConnectionId = Context.ConnectionId,
-                ChapterId    = chapterId,
-                UserId       = userId,
-                Username     = username,
-                Color        = Colors[Math.Abs(userId) % Colors.Length],
+                ChapterId = chapterId,
+                UserId = userId,
+                Username = username,
+                Color = Colors[Math.Abs(userId) % Colors.Length],
             };
             _users[Context.ConnectionId] = user;
 
@@ -42,11 +43,13 @@ namespace ChapterONE.API.Hubs
             await Clients.Caller.SendAsync("ActiveUsers", others);
         }
 
+        // gajo saiu
         public async Task LeaveChapter(int chapterId)
         {
             await RemoveUser(Context.ConnectionId, chapterId);
         }
 
+        // Propaga texto a todos os outros no capítulo
         public async Task SendTextUpdate(int chapterId, string content, int userId)
         {
             await Clients
@@ -54,6 +57,14 @@ namespace ChapterONE.API.Hubs
                 .SendAsync("ReceiveTextUpdate", content, userId);
         }
 
+        public async Task SendTypingIndicator(int chapterId, int userId, string username, string color)
+        {
+            await Clients
+                .OthersInGroup(GroupName(chapterId))
+                .SendAsync("UserTyping", userId, username, color);
+        }
+
+        // Desconexão inesperada
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             if (_users.TryGetValue(Context.ConnectionId, out var user))
@@ -80,9 +91,9 @@ namespace ChapterONE.API.Hubs
     public class CollabUser
     {
         public string ConnectionId { get; set; } = "";
-        public int    ChapterId    { get; set; }
-        public int    UserId       { get; set; }
-        public string Username     { get; set; } = "";
-        public string Color        { get; set; } = "#6366f1";
+        public int ChapterId { get; set; }
+        public int UserId { get; set; }
+        public string Username { get; set; } = "";
+        public string Color { get; set; } = "#6366f1";
     }
 }
