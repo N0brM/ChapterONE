@@ -25,17 +25,17 @@ namespace ChapterONE.API.Controllers
             if (string.IsNullOrWhiteSpace(request.Text))
                 return BadRequest("O texto não pode estar vazio.");
 
+            request.Text = SanitizeEditorHtml(request.Text);
             var wordCount = CountWords(request.Text);
             var sentenceCount = CountSentences(request.Text);
             var readingTime = Math.Max(1, (int)Math.Ceiling(wordCount / 200.0));
 
             var prompt =
-                "Analisa este texto em português e responde APENAS em JSON válido (sem markdown), " +
-                "com exactamente estas duas propriedades:\n" +
-                "- \"predominantEmotion\": a emoção predominante em português " +
-                "(ex: Alegria, Tristeza, Tensão, Medo, Esperança, Raiva, Nostalgia, Suspense...)\n" +
-                "- \"readingLevel\": o nível de leitura em português " +
-                "(Infantil / Juvenil / Adulto / Académico)\n\n" +
+                "Analisa este texto em português. " +
+                "Responde EXCLUSIVAMENTE com um objeto JSON, sem qualquer texto antes ou depois, sem markdown, sem ```.\n" +
+                "O objeto deve ter exactamente estas duas propriedades:\n" +
+                "{ \"predominantEmotion\": \"<emoção em português: Alegria, Tristeza, Tensão, Medo, Esperança, Raiva, Nostalgia, Suspense, Romance, Humor...>\", " +
+                "\"readingLevel\": \"<Infantil | Juvenil | Adulto | Académico>\" }\n\n" +
                 $"Texto:\n{TruncateText(request.Text, 3000)}";
 
             string predominantEmotion = "Neutro";
@@ -43,15 +43,22 @@ namespace ChapterONE.API.Controllers
 
             try
             {
-                var aiResponse = await CallGemini(prompt, maxTokens: 100);
-                aiResponse = Regex.Replace(aiResponse, @"```json?|```", "").Trim();
-                var parsed = JsonSerializer.Deserialize<JsonElement>(aiResponse);
+                var aiResponse = await CallGemini(prompt, maxTokens: 512);
+                Console.WriteLine($"[AI Analyze] Resposta bruta do Gemini: '{aiResponse}'");
+
+                var jsonMatch = Regex.Match(aiResponse, @"\{.*?\}", RegexOptions.Singleline);
+                if (!jsonMatch.Success)
+                    throw new Exception($"Nenhum JSON encontrado na resposta: {aiResponse}");
+
+                Console.WriteLine($"[AI Analyze] JSON extraído: '{jsonMatch.Value}'");
+
+                var parsed = JsonSerializer.Deserialize<JsonElement>(jsonMatch.Value);
                 predominantEmotion = parsed.GetProperty("predominantEmotion").GetString() ?? "Neutro";
                 readingLevel = parsed.GetProperty("readingLevel").GetString() ?? "Geral";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AI Analyze] Erro: {ex.Message}");
+                Console.WriteLine($"[AI Analyze] ERRO: {ex.Message}");
             }
 
             return Ok(new
@@ -69,6 +76,11 @@ namespace ChapterONE.API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.Text))
                 return BadRequest("O texto não pode estar vazio.");
+            request.Text = SanitizeEditorHtml(request.Text);
+
+            if (string.IsNullOrWhiteSpace(request.Text))
+                return BadRequest("O texto ficou vazio após sanitização.");
+
 
             var systemPrompt = request.Type switch
             {
@@ -187,6 +199,28 @@ namespace ChapterONE.API.Controllers
 
         private static string TruncateText(string text, int maxChars)
             => text.Length <= maxChars ? text : text[..maxChars] + "...";
+
+        private static string SanitizeEditorHtml(string html)
+        {
+            var cleaned = Regex.Replace(html, @" _ngcontent-[^""]*""[^""]*""", "");
+            cleaned = Regex.Replace(cleaned, @" data-[a-z\-]+=(?:""[^""]*""|'[^']*')", "");
+            cleaned = Regex.Replace(cleaned, @" aria-[a-z\-]+=(?:""[^""]*""|'[^']*')", "");
+            cleaned = Regex.Replace(cleaned, @" role=""[^""]*""", "");
+            cleaned = Regex.Replace(cleaned, @" id=""[^""]*""", "");
+            cleaned = Regex.Replace(cleaned, @" class=""[^""]*""", "");
+            cleaned = Regex.Replace(cleaned, @" style=""[^""]*""", "");
+            cleaned = Regex.Replace(cleaned, @" c=""[^""]*""", ""); 
+
+            var allowedTags = new HashSet<string> { "p", "b", "i", "u", "strong", "em", "br", "span", "font", "h1", "h2", "h3", "h4", "ul", "ol", "li" };
+            cleaned = Regex.Replace(cleaned, @"<(/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>", m =>
+            {
+                var tag = m.Groups[2].Value.ToLower();
+                return allowedTags.Contains(tag) ? $"<{m.Groups[1].Value}{tag}>" : " ";
+            });
+
+            cleaned = Regex.Replace(cleaned, @"\s{2,}", " ").Trim();
+            return cleaned;
+        }
     }
 
     public class TextRequest

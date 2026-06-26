@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ChapterONE.API.Data;
-using ChapterONE.API.Models;
 
 namespace ChapterONE.API.Controllers
 {
@@ -8,42 +7,81 @@ namespace ChapterONE.API.Controllers
     [ApiController]
     public class UploadController : ControllerBase
     {
+        private readonly IWebHostEnvironment _env;
         private readonly AppDbContext _context;
-        private readonly IWebHostEnvironment _environment;
 
-        public UploadController(AppDbContext context, IWebHostEnvironment environment)
+        public UploadController(IWebHostEnvironment env, AppDbContext context)
         {
+            _env = env;
             _context = context;
-            _environment = environment;
         }
 
         [HttpPost("profile-picture/{userId}")]
         public async Task<IActionResult> UploadProfilePicture(int userId, IFormFile file)
         {
-            if (file == null || file.Length == 0) return BadRequest("Ficheiro inválido.");
-
+            if (file == null || file.Length == 0) return BadRequest("Nenhum ficheiro recebido.");
             var user = await _context.Users.FindAsync(userId);
-            if (user == null) return NotFound("Utilizador não encontrado.");
+            if (user == null) return NotFound();
 
-            // Usa a pasta wwwroot
-            var wwwRootPath = _environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var uploadsFolder = Path.Combine(wwwRootPath, "uploads", "profiles");
-
-            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-            var fileName = $"profile_{userId}{Path.GetExtension(file.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Guarda o caminho na BD
-            user.ProfilePicture = $"/uploads/profiles/{fileName}";
+            var url = await SaveFile(file, "uploads/profiles");
+            user.ProfilePicture = url;
             await _context.SaveChangesAsync();
+            return Ok(new { url });
+        }
 
-            return Ok(new { url = user.ProfilePicture });
+        [HttpPost("project-cover/{projectId}")]
+        public async Task<IActionResult> UploadProjectCover(int projectId, IFormFile file)
+        {
+            if (file == null || file.Length == 0) return BadRequest("Nenhum ficheiro recebido.");
+            var project = await _context.Projects.FindAsync(projectId);
+            if (project == null) return NotFound();
+
+            var url = await SaveFile(file, "uploads/covers");
+            project.CoverImage = url;
+            await _context.SaveChangesAsync();
+            return Ok(new { url });
+        }
+
+        [HttpPost("chapter-image")]
+        public async Task<IActionResult> UploadChapterImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Nenhum ficheiro recebido.");
+
+            var url = await SaveFile(file, "uploads/chapter-images");
+            return Ok(new { url });
+        }
+
+        [HttpPost("reference-image/{referenceId}")]
+        public async Task<IActionResult> UploadReferenceImage(int referenceId, IFormFile file)
+        {
+            if (file == null || file.Length == 0) return BadRequest("Nenhum ficheiro recebido.");
+            var reference = await _context.References.FindAsync(referenceId);
+            if (reference == null) return NotFound();
+
+            var url = await SaveFile(file, "uploads/references");
+            reference.ImageUrl = url;
+            await _context.SaveChangesAsync();
+            return Ok(new { url });
+        }
+
+        private async Task<string> SaveFile(IFormFile file, string folder)
+        {
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowed.Contains(ext))
+                throw new InvalidOperationException("Tipo de ficheiro não suportado.");
+
+            var uploadPath = Path.Combine(_env.WebRootPath, folder);
+            Directory.CreateDirectory(uploadPath);
+
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var filePath = Path.Combine(uploadPath, fileName);
+
+            await using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/{folder}/{fileName}";
         }
     }
 }

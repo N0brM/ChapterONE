@@ -28,8 +28,8 @@ export class AiService {
         wordCount:          res.WordCount          ?? 0,
         sentenceCount:      res.SentenceCount      ?? 0,
         readingTimeMinutes: res.ReadingTimeMinutes ?? 1,
-        predominantEmotion: res.PredominantEmotion ?? 'Neutro',
-        readingLevel:       res.ReadingLevel       ?? 'Geral',
+        predominantEmotion: res.predominantEmotion ?? res.PredominantEmotion ?? 'Neutro',
+        readingLevel:       res.readingLevel       ?? res.ReadingLevel       ?? 'Geral',
       }))
     );
   }

@@ -6,6 +6,7 @@ namespace ChapterONE.API.Hubs
     public class WritingHub : Hub
     {
         private static readonly ConcurrentDictionary<string, CollabUser> _users = new();
+        private static readonly ConcurrentDictionary<int, string> _chapterContent = new();
 
         private static readonly string[] Colors =
         {
@@ -41,9 +42,13 @@ namespace ChapterONE.API.Hubs
                 .Select(u => new { u.UserId, u.Username, u.Color });
 
             await Clients.Caller.SendAsync("ActiveUsers", others);
+            if (_chapterContent.TryGetValue(chapterId, out var liveContent))
+            {
+                await Clients.Caller.SendAsync("SyncContent", liveContent);
+            }
         }
 
-        // gajo saiu
+        // Utilizador sai explicitamente
         public async Task LeaveChapter(int chapterId)
         {
             await RemoveUser(Context.ConnectionId, chapterId);
@@ -52,11 +57,14 @@ namespace ChapterONE.API.Hubs
         // Propaga texto a todos os outros no capítulo
         public async Task SendTextUpdate(int chapterId, string content, int userId)
         {
+            _chapterContent[chapterId] = content;
+
             await Clients
                 .OthersInGroup(GroupName(chapterId))
                 .SendAsync("ReceiveTextUpdate", content, userId);
         }
 
+        // Indica que o utilizador está a escrever
         public async Task SendTypingIndicator(int chapterId, int userId, string username, string color)
         {
             await Clients

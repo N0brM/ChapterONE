@@ -20,6 +20,8 @@ export class CollaborationService {
   readonly connected$    = new Subject<boolean>();
   readonly userTyping$   = new Subject<CollabUser>();
 
+  readonly contentSync$  = new Subject<string>();
+
   get isConnected(): boolean {
     return this.hub?.state === signalR.HubConnectionState.Connected;
   }
@@ -56,9 +58,15 @@ export class CollaborationService {
     this.hub.on('UserTyping', (userId: number, username: string, color: string) => {
       this.userTyping$.next({ userId, username, color });
     });
+    this.hub.on('SyncContent', (content: string) => {
+      this.contentSync$.next(content);
+    });
 
     this.hub.onreconnected(async () => {
       this.connected$.next(true);
+      // Ao reconectar, volta a entrar no capítulo — isto também despoleta
+      // um novo SyncContent do servidor, recuperando qualquer atualização
+      // perdida durante o corte de ligação.
       await this.joinChapter(chapterId, userId, username);
     });
     this.hub.onclose(() => this.connected$.next(false));

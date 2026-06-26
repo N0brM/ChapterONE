@@ -373,6 +373,111 @@
     ]
   },
   {
+    "ContainingType": "ChapterONE.API.Controllers.ReferencesController",
+    "Method": "Create",
+    "RelativePath": "api/References",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "reference",
+        "Type": "ChapterONE.API.Models.Reference",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "ChapterONE.API.Models.Reference",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.ReferencesController",
+    "Method": "Update",
+    "RelativePath": "api/References/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "reference",
+        "Type": "ChapterONE.API.Models.Reference",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.ReferencesController",
+    "Method": "Delete",
+    "RelativePath": "api/References/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.ReferencesController",
+    "Method": "GetByProject",
+    "RelativePath": "api/References/project/{projectId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "projectId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[ChapterONE.API.Models.Reference, ChapterONE.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.UploadController",
+    "Method": "UploadChapterImage",
+    "RelativePath": "api/Upload/chapter-image",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "ChapterONE.API.Controllers.UploadController",
     "Method": "UploadProfilePicture",
     "RelativePath": "api/Upload/profile-picture/{userId}",
@@ -382,6 +487,48 @@
     "Parameters": [
       {
         "Name": "userId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.UploadController",
+    "Method": "UploadProjectCover",
+    "RelativePath": "api/Upload/project-cover/{projectId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "projectId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "ChapterONE.API.Controllers.UploadController",
+    "Method": "UploadReferenceImage",
+    "RelativePath": "api/Upload/reference-image/{referenceId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "referenceId",
         "Type": "System.Int32",
         "IsRequired": true
       },

@@ -13,7 +13,9 @@ import { AuthService } from '../../services/auth.service';
 import { Project } from '../../services/project';
 import { AiService, TextAnalysisResult, ImproveTextResult } from '../../services/ai.service';
 import { CollaborationService, CollabUser } from '../../services/collaboration.service';
+import { ToastService } from '../../services/toast.service';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   LucideAngularModule,
   Edit2,
@@ -52,6 +54,9 @@ import {
   Download,
   FileText,
   File,
+  Check,
+  AlertTriangle,
+  ImagePlus,
 } from 'lucide-angular';
 
 @Component({
@@ -104,6 +109,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   readonly DownloadIcon = Download;
   readonly FileTextIcon = FileText;
   readonly FileIcon = File;
+  readonly CheckIcon = Check;
+  readonly WarningIcon = AlertTriangle;
+  readonly ImageIcon = ImagePlus;
 
   username: string | null = '';
   projects: any[] = [];
@@ -123,16 +131,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   //projetc types assim pode ser outras coisas sem ser livro
   projectTypes = [
-    { value: 'Livro', label: 'Livro', emoji: '📖' },
-    { value: 'Serie', label: 'Série', emoji: '📺' },
-    { value: 'Filme', label: 'Filme', emoji: '🎬' },
+    { value: 'Livro', label: 'Livro', icon: this.BookIcon },
+    { value: 'Serie', label: 'Série', icon: this.TvIcon },
+    { value: 'Filme', label: 'Filme', icon: this.FilmIcon },
   ];
 
   activeCollaborators: CollabUser[] = [];
   isCollabConnected: boolean = false;
   private lastLocalEdit: number = 0;
   private collabSendTimer: any;
+  private collabMaxWaitTimer: any = null;
   private collabSubs: Subscription[] = [];
+  private isApplyingRemoteContent = false;
 
   //coisas para AI
   showAiPanel: boolean = false;
@@ -147,6 +157,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     type: 'Livro',
   };
   suggestedColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444'];
+  newProjectCoverFile: File | null = null;
+  newProjectCoverPreview: string | null = null;
 
   showCollabModal: boolean = false;
   collabTab: 'invite' | 'members' = 'invite';
@@ -162,10 +174,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private isTypingThrottled: boolean = false;
   private typingThrottleTimer: any;
 
-  // Toast de entrada/saída de colaboradores
-  collabToast: { message: string; color: string } | null = null;
-  private toastTimer: any;
-
   // Cor do utilizador local
   myCollabColor: string = '#6366f1';
 
@@ -176,18 +184,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   joinError: string = '';
 
   editUserData = { username: '', email: '' };
-  originalUserData = { username: '', email: '', profilePicture: '' };
+  originalUserData = { username: '', profilePicture: '' };
 
   showChapterModal: boolean = false;
   newChapterData = { title: '', number: 1 };
 
   showExportMenu: boolean = false;
+  toasts$: any;
+
+  private savedImageRange: Range | null = null;
 
   constructor(
     private authService: AuthService,
     private aiService: AiService,
     private project: Project,
     private collabService: CollaborationService,
+    public toastService: ToastService,
     private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -203,31 +215,44 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.editUserData.username = this.username || '';
-    this.editUserData.email = this.authService.getUserEmail() || '';
 
     const savedPhoto = this.authService.getProfilePicture();
     if (savedPhoto) {
       this.newAvatarUrl = savedPhoto.startsWith('http')
         ? savedPhoto
-        : `${this.authService['apiUrl'] || 'https://localhost:7257'}${savedPhoto}`;
+        : `${environment.apiUrl}${savedPhoto}`;
     }
-
     this.originalUserData = {
       username: this.editUserData.username,
-      email: this.editUserData.email,
       profilePicture: this.newAvatarUrl,
     };
 
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.project.getUserProfile(parseInt(userId)).subscribe({
+        next: (user: any) => {
+          const pic = user.profilePicture ?? user.ProfilePicture;
+          if (pic) {
+            const fullUrl = pic.startsWith('http') ? pic : `${environment.apiUrl}${pic}`;
+            this.newAvatarUrl = fullUrl;
+            this.originalUserData.profilePicture = fullUrl;
+            localStorage.setItem('profilePicture', pic);
+          }
+        },
+        error: () => {}, //? falha silenciosa, fica com o localStorage
+      });
+    }
+    this.toasts$ = this.toastService.toasts$;
     this.loadProjects();
   }
 
   ngOnDestroy() {
     clearTimeout(this.autoSaveTimer);
     clearTimeout(this.collabSendTimer);
+    clearTimeout(this.collabMaxWaitTimer);
     clearTimeout(this.typingThrottleTimer);
-    clearTimeout(this.toastTimer);
-    Object.values(this.typingTimers).forEach(t => clearTimeout(t));
-    this.collabSubs.forEach(s => s.unsubscribe());
+    Object.values(this.typingTimers).forEach((t) => clearTimeout(t));
+    this.collabSubs.forEach((s) => s.unsubscribe());
     if (this.selectedChapter) {
       const id = this.selectedChapter.Id ?? this.selectedChapter.id;
       this.collabService.leaveChapter(id);
@@ -260,7 +285,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
 
     this.project.createProject(payload).subscribe({
-      next: () => this.showGrid(),
+      next: (created: any) => {
+        const newId = created?.Id ?? created?.id;
+        if (this.newProjectCoverFile && newId) {
+          this.project.uploadProjectCover(newId, this.newProjectCoverFile).subscribe({
+            next: () => {
+              this.clearNewProjectCover();
+              this.showGrid();
+            },
+            error: (err) => {
+              console.error('Erro ao carregar a capa:', err);
+              this.clearNewProjectCover();
+              this.showGrid();
+            },
+          });
+        } else {
+          this.showGrid();
+        }
+      },
       error: (err) => console.error('Erro ao criar projeto:', err),
     });
   }
@@ -284,6 +326,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showNewProjectForm() {
     this.viewMode = 'form';
     this.newProjectData = { title: '', description: '', coverColor: '#6366f1', type: 'Livro' };
+    this.clearNewProjectCover();
   }
 
   showGrid() {
@@ -296,8 +339,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.newProjectData.coverColor = color;
   }
 
-  getTypeEmoji(type: string): string {
-    return this.projectTypes.find((t) => t.value === type)?.emoji || '📖';
+  getTypeIcon(type: string) {
+    return this.projectTypes.find((t) => t.value === type)?.icon ?? this.BookIcon;
   }
 
   openAddChapterModal() {
@@ -380,88 +423,156 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.startCollaboration(chapter);
   }
 
+  private saveCursorOffset(): number | null {
+    const editorEl = this.richEditor?.nativeElement;
+    if (!editorEl) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    if (!editorEl.contains(sel.anchorNode)) return null;
+
+    const range = sel.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(editorEl);
+    preRange.setEnd(range.endContainer, range.endOffset);
+    return preRange.toString().length;
+  }
+
+  private restoreCursorOffset(offset: number) {
+    const editorEl = this.richEditor?.nativeElement;
+    if (!editorEl) return;
+
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    const walker = document.createTreeWalker(editorEl, NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+    let remaining = offset;
+
+    while ((node = walker.nextNode())) {
+      const len = node.textContent?.length ?? 0;
+      if (remaining <= len) {
+        const range = document.createRange();
+        range.setStart(node, remaining);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        return;
+      }
+      remaining -= len;
+    }
+
+    // Se não encontrou (ex: texto ficou mais curto), coloca o cursor no fim
+    const range = document.createRange();
+    range.selectNodeContents(editorEl);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
   private async startCollaboration(chapter: any) {
     const chapterId = chapter.Id ?? chapter.id;
-    const userId    = parseInt(this.authService.getUserId() || '0');
-    const username  = this.username || 'Anónimo';
+    const userId = parseInt(this.authService.getUserId() || '0');
+    const username = this.username || 'Anónimo';
 
     try {
       await this.collabService.connect(chapterId, userId, username);
       this.isCollabConnected = true;
 
       // Guarda a cor do utilizador local (baseada no userId, igual ao Hub)
-      const colors = ['#6366f1','#ec4899','#10b981','#f59e0b','#3b82f6','#ef4444','#8b5cf6','#06b6d4'];
+      const colors = [
+        '#6366f1',
+        '#ec4899',
+        '#10b981',
+        '#f59e0b',
+        '#3b82f6',
+        '#ef4444',
+        '#8b5cf6',
+        '#06b6d4',
+      ];
       this.myCollabColor = colors[Math.abs(userId) % colors.length];
-
-      // Recebe texto de outros
       this.collabSubs.push(
-        this.collabService.textReceived$.subscribe(({ content, userId: remoteId }) => {
-          if (remoteId === userId) return;
-          const idle = Date.now() - this.lastLocalEdit > 1500;
-          if (idle && this.richEditor) {
+        this.collabService.contentSync$.subscribe((content) => {
+          if (!content || !this.richEditor) return;
+          if (this.richEditor.nativeElement.innerHTML !== content) {
             this.richEditor.nativeElement.innerHTML = content;
             this.selectedChapter.Content = content;
             this.updateWordCount();
           }
-        })
+        }),
+      );
+
+      this.collabSubs.push(
+        this.collabService.textReceived$.subscribe(({ content, userId: remoteId }) => {
+          if (Number(remoteId) === Number(userId)) return;
+          if (!this.richEditor) return;
+
+          const hasFocus = document.activeElement === this.richEditor.nativeElement;
+          const cursorOffset = hasFocus ? this.saveCursorOffset() : null;
+
+          //! Bloqueia syncEditorContent enquanto aplica conteúdo remoto
+          this.isApplyingRemoteContent = true;
+          this.richEditor.nativeElement.innerHTML = content;
+          this.selectedChapter.Content = content;
+          this.updateWordCount();
+          this.isApplyingRemoteContent = false;
+
+          if (hasFocus && cursorOffset !== null) {
+            this.restoreCursorOffset(cursorOffset);
+          }
+        }),
       );
 
       // Lista inicial de colaboradores
       this.collabSubs.push(
-        this.collabService.activeUsers$.subscribe(users => {
+        this.collabService.activeUsers$.subscribe((users) => {
           this.activeCollaborators = users;
-        })
+        }),
       );
 
       // Alguém entrou
       this.collabSubs.push(
-        this.collabService.userJoined$.subscribe(user => {
-          if (!this.activeCollaborators.find(u => u.userId === user.userId))
+        this.collabService.userJoined$.subscribe((user) => {
+          if (!this.activeCollaborators.find((u) => u.userId === user.userId))
             this.activeCollaborators = [...this.activeCollaborators, user];
           this.showCollabToast(`${user.username} entrou no capítulo`, user.color);
-        })
+        }),
       );
 
       // Alguém saiu
       this.collabSubs.push(
         this.collabService.userLeft$.subscribe(({ userId: leftId, username: leftName }) => {
-          this.activeCollaborators = this.activeCollaborators.filter(u => u.userId !== leftId);
-          this.typingUsers = this.typingUsers.filter(u => u.userId !== leftId);
+          this.activeCollaborators = this.activeCollaborators.filter((u) => u.userId !== leftId);
+          this.typingUsers = this.typingUsers.filter((u) => u.userId !== leftId);
           this.showCollabToast(`${leftName} saiu do capítulo`, '#94a3b8');
-        })
+        }),
       );
 
       // Indicador de "está a escrever"
       this.collabSubs.push(
-        this.collabService.userTyping$.subscribe(user => {
-          // Adiciona se não estiver já na lista
-          if (!this.typingUsers.find(u => u.userId === user.userId))
+        this.collabService.userTyping$.subscribe((user) => {
+          if (!this.typingUsers.find((u) => u.userId === user.userId))
             this.typingUsers = [...this.typingUsers, user];
 
-          // Remove após 2.5 segundos sem nova notificação
           clearTimeout(this.typingTimers[user.userId]);
           this.typingTimers[user.userId] = setTimeout(() => {
-            this.typingUsers = this.typingUsers.filter(u => u.userId !== user.userId);
+            this.typingUsers = this.typingUsers.filter((u) => u.userId !== user.userId);
           }, 2500);
-        })
+        }),
       );
-
     } catch (err) {
       console.warn('SignalR não disponível — modo offline:', err);
       this.isCollabConnected = false;
     }
   }
 
-  private showCollabToast(message: string, color: string) {
-    clearTimeout(this.toastTimer);
-    this.collabToast = { message, color };
-    this.toastTimer = setTimeout(() => {
-      this.collabToast = null;
-    }, 3000);
+  private showCollabToast(message: string, _color: string) {
+    this.toastService.info(message);
   }
 
   syncEditorContent() {
     if (!this.richEditor) return;
+    if (this.isApplyingRemoteContent) return;
     this.selectedChapter.Content = this.richEditor.nativeElement.innerHTML;
     this.isSaved = false;
     this.updateWordCount();
@@ -472,29 +583,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
     clearTimeout(this.autoSaveTimer);
     this.autoSaveTimer = setTimeout(() => this.saveChapterContent(), 2000);
 
-    // Envia texto para colaboradores: 500ms após a última tecla
+    // Envia texto para colaboradores: debounce de 400ms após a última tecla
     clearTimeout(this.collabSendTimer);
-    this.collabSendTimer = setTimeout(() => {
-      const chapterId = this.selectedChapter?.Id ?? this.selectedChapter?.id;
-      const userId    = parseInt(this.authService.getUserId() || '0');
-      if (chapterId && this.isCollabConnected) {
-        this.collabService.sendTextUpdate(chapterId, this.selectedChapter.Content, userId);
-      }
-    }, 500);
+
+    this.collabSendTimer = setTimeout(() => this.flushCollabUpdate(), 400);
+    // garante um envio a cada 1.2s mesmo que a pessoa
+    // escreva sem pausas. Sem isto, alguém a escrever um parágrafo inteiro
+    // de seguida nunca dispararia o debounce e os outros não veriam nada
+    // até essa pessoa parar de escrever.
+    if (!this.collabMaxWaitTimer) {
+      this.collabMaxWaitTimer = setTimeout(() => this.flushCollabUpdate(), 1200);
+    }
 
     // Envia "está a escrever" — throttled a 1 vez por segundo
     if (!this.isTypingThrottled) {
       this.isTypingThrottled = true;
       const chapterId = this.selectedChapter?.Id ?? this.selectedChapter?.id;
-      const userId    = parseInt(this.authService.getUserId() || '0');
+      const userId = parseInt(this.authService.getUserId() || '0');
       if (chapterId && this.isCollabConnected) {
         this.collabService.sendTypingIndicator(
-          chapterId, userId, this.username || 'Anónimo', this.myCollabColor
+          chapterId,
+          userId,
+          this.username || 'Anónimo',
+          this.myCollabColor,
         );
       }
       this.typingThrottleTimer = setTimeout(() => {
         this.isTypingThrottled = false;
       }, 1000);
+    }
+  }
+
+  private flushCollabUpdate() {
+    clearTimeout(this.collabSendTimer);
+    clearTimeout(this.collabMaxWaitTimer);
+    this.collabMaxWaitTimer = null;
+
+    const chapterId = this.selectedChapter?.Id ?? this.selectedChapter?.id;
+    const userId = parseInt(this.authService.getUserId() || '0');
+    if (chapterId && this.isCollabConnected) {
+      this.collabService.sendTextUpdate(chapterId, this.selectedChapter.Content, userId);
     }
   }
 
@@ -574,7 +702,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     const payload = {
       Username: this.editUserData.username,
-      Email: this.editUserData.email,
       PreferredTheme: this.currentTheme,
     };
 
@@ -582,16 +709,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         this.username = res.username || this.editUserData.username;
         localStorage.setItem('username', this.editUserData.username);
-        localStorage.setItem('email', this.editUserData.email);
         localStorage.setItem('selected-theme', this.currentTheme);
 
         this.originalUserData = {
           username: this.editUserData.username,
-          email: this.editUserData.email,
           profilePicture: this.newAvatarUrl,
         };
 
-        alert('Perfil atualizado com sucesso!');
+        this.toastService.success('Perfil atualizado com sucesso!');
       },
       error: (err) => console.error('Erro ao atualizar perfil:', err),
     });
@@ -600,7 +725,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   hasProfileChanges(): boolean {
     return (
       this.editUserData.username !== this.originalUserData.username ||
-      this.editUserData.email !== this.originalUserData.email ||
       this.newAvatarUrl !== this.originalUserData.profilePicture ||
       this.currentTheme !== localStorage.getItem('selected-theme')
     );
@@ -614,12 +738,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const file: File = event.target.files[0];
     const userId = this.authService.getUserId();
     if (!file || !userId) return;
-
     this.project.uploadProfilePicture(parseInt(userId), file).subscribe({
       next: (res: any) => {
-        this.newAvatarUrl = `https://localhost:7257${res.url}`;
+        this.newAvatarUrl = this.getImageUrl(res.url);
         localStorage.setItem('profilePicture', res.url);
-        this.originalUserData.profilePicture = this.newAvatarUrl;
       },
       error: (err) => console.error('Erro no upload:', err),
     });
@@ -640,7 +762,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.aiLoading = true;
-    this.aiService.analyzeText(this.selectedChapter.Content).subscribe({
+    const contentToAnalyze =
+      this.richEditor?.nativeElement?.innerHTML?.trim() || this.selectedChapter.Content;
+    this.aiService.analyzeText(contentToAnalyze).subscribe({
       next: (result) => {
         this.aiAnalysisResult = result;
         this.aiLoading = false;
@@ -649,7 +773,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.error('Erro ao analisar texto com IA:', err);
         this.aiLoading = false;
         this.aiAnalysisResult = null;
-        alert('Erro ao analisar texto. Verifica a ligação à API de IA.');
+        this.toastService.error('Erro ao analisar texto. Verifica a ligação à API de IA.');
       },
     });
   }
@@ -660,7 +784,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.aiLoading = true;
-    this.aiService.improveText(this.selectedChapter.Content, this.aiImprovementType).subscribe({
+    const contentToImprove =
+      this.richEditor?.nativeElement?.innerHTML?.trim() || this.selectedChapter.Content;
+    this.aiService.improveText(contentToImprove, this.aiImprovementType).subscribe({
       next: (result) => {
         this.selectedChapter.Content = result.improvedText;
         this.isSaved = false; // Marcar como não guardado para o socio salvar
@@ -670,13 +796,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.richEditor.nativeElement.innerHTML = result.improvedText;
           this.updateWordCount();
         }
-
-        alert('Texto melhorado com sucesso! Não te esqueças de guardar.');
+        this.toastService.success('Texto melhorado! Não te esqueças de guardar.');
       },
       error: (err) => {
         console.error('Erro ao melhorar texto com IA:', err);
         this.aiLoading = false;
-        alert('Erro ao melhorar texto. Verifica a ligação à API de IA.');
+        this.toastService.error('Erro ao melhorar texto. Verifica a ligação à API de IA.');
       },
     });
   }
@@ -776,6 +901,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isOwner(): boolean {
     const userId = parseInt(this.authService.getUserId() || '0');
     const ownerId = this.selectedProject?.OwnerId ?? this.selectedProject?.ownerId;
+    console.log(
+      '[isOwner] userId:',
+      userId,
+      '| ownerId:',
+      ownerId,
+      '| tipo userId:',
+      typeof userId,
+      '| tipo ownerId:',
+      typeof ownerId,
+    );
     return userId === ownerId;
   }
 
@@ -801,7 +936,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.joinLoading = false;
         this.closeJoinModal();
-        alert(res.Message);
+        this.toastService.success(res.Message ?? 'Entraste no projeto com sucesso!');
         this.loadProjects(); // Atualiza o grid com o novo projeto
       },
       error: (err) => {
@@ -914,7 +1049,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           <div class="book-title">${project}</div>
           <h1 class="chapter-title">Capítulo ${order}: ${title}</h1>
           <div class="content">${content}</div>
-          <div class="footer">ChapterONE · ${new Date().toLocaleDateString('pt-PT')}</div>
+          <div class="footer">ChapterONE</div>
         </div>
         <script>
           window.onload = function() {
@@ -926,6 +1061,69 @@ export class DashboardComponent implements OnInit, OnDestroy {
       </html>
     `);
     printWindow.document.close();
+  }
+
+  triggerChapterImageUpload() {
+    const sel = window.getSelection();
+    this.savedImageRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
+    (document.getElementById('chapterImageInput') as HTMLInputElement)?.click();
+  }
+
+  onChapterImageSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file || !this.richEditor) return;
+
+    this.project.uploadChapterImage(file).subscribe({
+      next: (res: any) => {
+        const fullUrl = this.getImageUrl(res.url);
+
+        this.richEditor!.nativeElement.focus();
+
+        // Restaura a posição do cursor de antes de abrir o seletor
+        const sel = window.getSelection();
+        if (sel && this.savedImageRange) {
+          sel.removeAllRanges();
+          sel.addRange(this.savedImageRange);
+        }
+
+        document.execCommand('insertImage', false, fullUrl);
+        this.syncEditorContent();
+      },
+      error: (err) => {
+        console.error('Erro ao carregar imagem:', err);
+        this.toastService.error('Erro ao carregar a imagem. Verifica o formato (jpg, png, webp).');
+      },
+    });
+
+    // Limpa o input para poderes escolher o mesmo ficheiro outra vez
+    event.target.value = '';
+  }
+
+  getImageUrl(path: string | null | undefined): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const base = window.location.port === '4200' ? 'https://localhost:7257' : '';
+    return `${base}${path}`;
+  }
+
+  triggerNewProjectCoverUpload() {
+    (document.getElementById('newProjectCoverInput') as HTMLInputElement)?.click();
+  }
+
+  onNewProjectCoverSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    this.newProjectCoverFile = file;
+    this.newProjectCoverPreview = URL.createObjectURL(file);
+  }
+
+  clearNewProjectCover() {
+    this.newProjectCoverFile = null;
+    if (this.newProjectCoverPreview) {
+      URL.revokeObjectURL(this.newProjectCoverPreview);
+      this.newProjectCoverPreview = null;
+    }
   }
 
   onLogout() {

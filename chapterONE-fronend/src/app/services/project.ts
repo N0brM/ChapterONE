@@ -7,15 +7,16 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class Project {
-  private apiUrl = `${environment.apiUrl}/api/Projects`;
-  private chapUrl = `${environment.apiUrl}/api/Chapters`;
-  private usersUrl = `${environment.apiUrl}/api/Users`;
+  private apiUrl    = `${environment.apiUrl}/api/Projects`;
+  private chapUrl   = `${environment.apiUrl}/api/Chapters`;
+  private usersUrl  = `${environment.apiUrl}/api/Users`;
   private uploadUrl = `${environment.apiUrl}/api/Upload`;
-    private aiUrl     = `${environment.apiUrl}/api/AI`;
+  private collabUrl = `${environment.apiUrl}/api/Collaborators`;
+  private refsUrl   = `${environment.apiUrl}/api/References`;
 
   constructor(private http: HttpClient) {}
 
-  // Projetos
+  // Projetos 
 
   getUserProjects(userId: string | number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
@@ -31,6 +32,12 @@ export class Project {
 
   updateProject(id: number, data: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, data);
+  }
+
+  uploadChapterImage(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${environment.apiUrl}/api/Upload/chapter-image`, formData);
   }
 
   deleteProject(id: number): Observable<any> {
@@ -56,10 +63,14 @@ export class Project {
     return this.http.delete(`${this.chapUrl}/${chapterId}`);
   }
 
-  //Utilizadores
+  // Utilizadores
 
   getUser(userId: string | number): Observable<any> {
     return this.http.get<any>(`${this.usersUrl}/${userId}`);
+  }
+
+  getUserProfile(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/api/Users/${userId}`);
   }
 
   updateUserProfile(userId: string | number, data: any): Observable<any> {
@@ -72,27 +83,24 @@ export class Project {
     return this.http.post(`${this.uploadUrl}/profile-picture/${userId}`, formData);
   }
 
-  //AI
-  analyzeText(text: string): Observable<any> {
-    // Remove tags HTML antes de enviar
-    const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    return this.http.post(`${this.aiUrl}/analyze`, { Text: cleanText });
+  uploadProjectCover(projectId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.uploadUrl}/project-cover/${projectId}`, formData);
   }
 
-  assistWriting(text: string, question: string): Observable<any> {
-    const cleanText = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    return this.http.post(`${this.aiUrl}/assist`, { Text: cleanText, Question: question });
+  uploadReferenceImage(referenceId: number, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.uploadUrl}/reference-image/${referenceId}`, formData);
   }
 
-  //! SignalR
-  private collabUrl = `${environment.apiUrl}/api/Collaborators`;
+  // Colaboradores 
 
-  // Lista colaboradores de um projeto
   getCollaborators(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.collabUrl}/${projectId}`);
   }
 
-  // Adiciona colaborador por username (só o dono)
   addCollaboratorByUsername(
     projectId: number,
     requestingUserId: number,
@@ -105,12 +113,10 @@ export class Project {
     });
   }
 
-  // Entra num projeto com código de convite
   joinProjectByCode(userId: number, code: string): Observable<any> {
     return this.http.post(`${this.collabUrl}/join`, { UserId: userId, Code: code });
   }
 
-  // Remove colaborador
   removeCollaborator(
     projectId: number,
     userId: number,
@@ -121,11 +127,28 @@ export class Project {
     );
   }
 
-  // Gera novo código de convite
   regenerateInviteCode(projectId: number, requestingUserId: number): Observable<any> {
     return this.http.post(
       `${this.collabUrl}/regenerate-code/${projectId}?requestingUserId=${requestingUserId}`,
       {}
     );
+  }
+
+  //Referências 
+
+  getReferences(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.refsUrl}/project/${projectId}`);
+  }
+
+  createReference(ref: any): Observable<any> {
+    return this.http.post(this.refsUrl, ref);
+  }
+
+  updateReference(id: number, ref: any): Observable<any> {
+    return this.http.put(`${this.refsUrl}/${id}`, ref);
+  }
+
+  deleteReference(id: number): Observable<any> {
+    return this.http.delete(`${this.refsUrl}/${id}`);
   }
 }
