@@ -16,65 +16,71 @@ namespace ChapterONE.API.Controllers
             _context = context;
         }
 
-        //mostrar os chaps de um project
-        [HttpGet("project/{projectId}")]
-        public async Task<ActionResult<IEnumerable<Chapter>>> GetProjectChapters(int projectId)
+        // sacar os chaps
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Chapter>> GetChapter(int id)
         {
-            return await _context.Chapters
-                .Where(c => c.ProjectId == projectId)
-                .OrderBy(c => c.Order)
-                .ToListAsync();
+            var chapter = await _context.Chapters.FindAsync(id);
+
+            if (chapter == null)
+            {
+                return NotFound();
+            }
+
+            return chapter;
         }
 
-        //meter um chap novo
-        [HttpPost]
-        public async Task<ActionResult> CreateChapter([FromBody] Chapter chapter)
-        {
-            if (string.IsNullOrEmpty(chapter.Title))
-            {
-                return BadRequest(new { message = "O título chegou vazio ao servidor!", recebido = chapter });
-            }
-
-            try
-            {
-                chapter.Project = null;
-                _context.Chapters.Add(chapter);
-                var result = await _context.SaveChangesAsync();
-
-                if (result > 0) return Ok(chapter);
-
-                return BadRequest("não conseguiu persistir os dados.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
-            }
-        }
-
+            
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateChapter(int id, [FromBody] Chapter chapter)
+        public async Task<IActionResult> PutChapter(int id, Chapter chapter)
         {
-            if (id != chapter.Id) return BadRequest("ID inválido.");
+            if (id != chapter.Id)
+            {
+                return BadRequest();
+            }
+            
+            if (!string.IsNullOrEmpty(chapter.Content))
+            {
+                // Contagem de palavras
+                chapter.WordCount = chapter.Content.Split(new[] { ' ', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
 
-            var existingChapter = await _context.Chapters.FindAsync(id);
-            if (existingChapter == null) return NotFound("Capítulo não encontrado.");
+                // Calcula tempo de leitura (média de 200 palavras por minuto)
+                chapter.ReadingTime = (int)Math.Ceiling(chapter.WordCount / 200.0);
+            }
+            else
+            {
+                chapter.WordCount = 0;
+                chapter.ReadingTime = 0;
+            }
 
-            existingChapter.Title = chapter.Title;
-            existingChapter.Content = chapter.Content; 
-            existingChapter.Order = chapter.Order;
+            chapter.LastAnalysisDate = DateTime.Now;
+
+            _context.Entry(chapter).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
-                return Ok(existingChapter); 
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                return StatusCode(500, "Erro ao gravar o texto: " + ex.Message);
+                if (!ChapterExists(id)) return NotFound();
+                else throw;
             }
+
+            return NoContent();
         }
 
-        //apagar
+        // meter um chap
+        [HttpPost]
+        public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
+        {
+            _context.Chapters.Add(chapter);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetChapter), new { id = chapter.Id }, chapter);
+        }
+
+        // apagar um chap
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteChapter(int id)
         {
@@ -88,7 +94,11 @@ namespace ChapterONE.API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
 
+        private bool ChapterExists(int id)
+        {
+            return _context.Chapters.Any(e => e.Id == id);
         }
     }
 }

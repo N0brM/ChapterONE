@@ -1,1 +1,58 @@
 /* You can add global styles to this file, and also import other style files */
+//! Posso acabar por remover, tou so a testar
+:root {
+  // Modern Light (Default)
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --accent-color: #6366f1;
+  --sidebar-bg: #ffffff;
+  --border-color: #e2e8f0;
+  --font-family: 'Inter', sans-serif;
+}
+
+body.dark-theme {
+  // Modern Dark
+  --bg-color: #0f172a;
+  --card-bg: #1e293b;
+  --text-color: #f1f5f9;
+  --accent-color: #818cf8;
+  --sidebar-bg: #1e293b;
+  --border-color: #334155;
+}
+
+body.retro-light {
+  // Windows 98 Style
+  --bg-color: #c0c0c0;
+  --card-bg: #ffffff;
+  --text-color: #000000;
+  --accent-color: #000080;
+  --sidebar-bg: #c0c0c0;
+  --border-color: #808080;
+  --font-family: 'MS Sans Serif', 'Tahoma', sans-serif;
+
+  .project-card,
+  .btn,
+  button {
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    border-radius: 0 !important;
+  }
+}
+
+body.retro-dark {
+  // Green Terminal Style
+  --bg-color: #000000;
+  --card-bg: #000000;
+  --text-color: #00ff00;
+  --accent-color: #00ff00;
+  --sidebar-bg: #000000;
+  --border-color: #00ff00;
+  --font-family: 'Courier New', monospace;
+
+  * {
+    text-shadow: 0 0 5px #00ff00;
+  }
+
+  border: 1px solid #00ff00;
+}

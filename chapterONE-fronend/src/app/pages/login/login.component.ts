@@ -33,18 +33,19 @@ export class LoginComponent {
 
     this.authService.login(loginPayload).subscribe({
       next: (response: any) => {
-        console.log('Resposta real da API:', response); 
-
+        console.log('Resposta real da API:', response);
         if (response && response.userId) {
           this.authService.saveUserData(response);
-          this.router.navigate(['/dashboard']);
+          this.authService.fetchAndSaveProfile(response.userId).subscribe({
+            next: () => this.router.navigate(['/dashboard']),
+            error: () => this.router.navigate(['/dashboard']), //? fallback se falhar
+          });
         } else {
           console.error('A API não enviou o userId esperado:', response);
         }
       },
       error: (err: any) => {
         if (err.status === 200 || err.status === 201) {
-
           const realData = err.error;
           if (realData && realData.userId) {
             this.authService.saveUserData(realData);

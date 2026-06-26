@@ -4,7 +4,6 @@
     <div class="user-menu">
       <img [src]="newAvatarUrl || 'assets/default-avatar.png'" class="user-avatar" alt="Profile" />
       <span>Heya, {{ username }}!</span>
-
       <button (click)="goToSettings()" class="btn-settings" title="Definições">
         <lucide-icon [name]="SettingsIcon" [size]="20"></lucide-icon>
       </button>
@@ -12,46 +11,99 @@
   </nav>
 
   <main class="main-content">
-    <!-- Lista dos projetos -->
+    <!-- Project grid -->
     <div *ngIf="viewMode === 'grid'">
       <div class="header-section">
         <h2>Os Meus Projetos</h2>
+        <button (click)="openJoinModal()" class="btn-join-code">
+          <lucide-icon [name]="LinkIcon" [size]="18"></lucide-icon>
+          Entrar com Código
+        </button>
         <button (click)="showNewProjectForm()" class="btn-new-project">
-          <span>+ Novo Projeto</span>
+          <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+          <span>Novo Projeto</span>
         </button>
       </div>
+
       <div class="projects-grid" *ngIf="projects.length > 0; else emptyState">
         <div class="project-card" *ngFor="let project of projects" (click)="openProject(project)">
+          <!-- Capa: imagem se existir, senão barra de cor -->
+          <div class="card-cover-preview">
+            <img
+              *ngIf="project.CoverImage"
+              [src]="getImageUrl(project.CoverImage)"
+              class="card-cover-img"
+              [alt]="project.Title"
+            />
+            <div
+              *ngIf="!project.CoverImage"
+              class="card-cover-bar"
+              [style.background-color]="project.CoverColor || '#6366f1'"
+            ></div>
+          </div>
+
           <div class="project-info">
-            <h3>{{ project.Title }}</h3>
+            <div class="project-title-row">
+              <h3>{{ project.Title }}</h3>
+              <span class="type-badge">
+                <lucide-icon [name]="getTypeIcon(project.ProjectType)" [size]="12"></lucide-icon>
+                {{ project.ProjectType || 'Livro' }}
+              </span>
+            </div>
             <p>{{ project.Description || 'Sem descrição disponível' }}</p>
           </div>
+
           <div class="project-footer">
-            <span class="chapters-count">{{ project.chaptersCount || 0 }} Capítulos</span>
-            <span class="last-edit">Atualizado recentemente</span>
+            <span class="chapters-count">{{ project.Chapters?.length || 0 }} Capítulos</span>
+            <!-- FIX: botão sempre visível, deixa de depender de hover -->
+            <button
+              class="btn-delete-project"
+              (click)="deleteProject(project, $event)"
+              title="Apagar projeto"
+            >
+              <lucide-icon [name]="TrashIcon" [size]="15"></lucide-icon>
+            </button>
           </div>
         </div>
       </div>
-      <!-- Obrigado a quem me sugeriu e ensinou isto -->
+
       <ng-template #emptyState>
         <div class="empty-state">
           <h3>Ainda não tens nenhum projeto</h3>
           <p>Começa a escrever a tua próxima grande história agora mesmo!</p>
           <button (click)="showNewProjectForm()" class="btn-new-project">
-            <span>Criar Primeiro Livro</span>
+            <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+            <span>Criar Primeiro Projeto</span>
           </button>
         </div>
       </ng-template>
     </div>
 
-    <!-- New projeto -->
     <div *ngIf="viewMode === 'form'" class="form-view">
       <div class="form-card">
         <div class="header">
           <h2>Criar Novo Projeto</h2>
           <p>Preenche os detalhes da tua próxima grande história.</p>
         </div>
-        <form (submit)="onCreateProject()" class="project-form">
+
+        <form (ngSubmit)="onCreateProject()" class="project-form">
+          <!-- Tipo de projeto -->
+          <div class="form-group">
+            <label>Tipo de Projeto</label>
+            <div class="type-selector">
+              <button
+                type="button"
+                *ngFor="let t of projectTypes"
+                [class.selected]="newProjectData.type === t.value"
+                (click)="newProjectData.type = t.value"
+              >
+                <lucide-icon [name]="t.icon" [size]="15"></lucide-icon>
+                {{ t.label }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Título -->
           <div class="form-group">
             <label for="title">Título do Projeto</label>
             <input
@@ -59,22 +111,81 @@
               id="title"
               [(ngModel)]="newProjectData.title"
               name="title"
-              placeholder="Ex: O senhor sem aneis"
+              placeholder="Ex: O senhor sem anéis"
               required
             />
           </div>
+
+          <!-- Descrição -->
           <div class="form-group">
             <label for="description">Descrição</label>
             <textarea
               id="description"
               [(ngModel)]="newProjectData.description"
               name="description"
-              placeholder="Sobre o que é este livro"
+              placeholder="Sobre o que é este projeto?"
             ></textarea>
           </div>
+
+          <!-- Imagem da capa (opcional) -->
+          <div class="form-group">
+            <label>Imagem da Capa (opcional)</label>
+
+            <div
+              class="cover-upload-zone"
+              *ngIf="!newProjectCoverPreview"
+              (click)="triggerNewProjectCoverUpload()"
+            >
+              <lucide-icon [name]="ImageIcon" [size]="22"></lucide-icon>
+              <span>Clica para escolher uma imagem</span>
+              <small>Se não escolheres nenhuma, fica a cor sólida abaixo</small>
+            </div>
+
+            <div class="cover-preview-wrapper" *ngIf="newProjectCoverPreview">
+              <img
+                [src]="newProjectCoverPreview"
+                class="cover-preview-img"
+                alt="Pré-visualização da capa"
+              />
+              <button
+                type="button"
+                class="btn-remove-cover"
+                (click)="clearNewProjectCover()"
+                title="Remover imagem"
+              >
+                <lucide-icon [name]="CloseIcon" [size]="14"></lucide-icon>
+              </button>
+            </div>
+
+            <input
+              type="file"
+              id="newProjectCoverInput"
+              accept="image/*"
+              (change)="onNewProjectCoverSelected($event)"
+              hidden
+            />
+          </div>
+
+          <!-- Cor da capa -->
+          <div class="form-group">
+            <label
+              >Cor da Capa
+              {{ newProjectCoverPreview ? '(usada se removeres a imagem)' : '' }}</label
+            >
+            <div class="color-picker">
+              <div
+                *ngFor="let color of suggestedColors"
+                class="color-option"
+                [style.background-color]="color"
+                [class.selected]="newProjectData.coverColor === color"
+                (click)="setCoverColor(color)"
+              ></div>
+            </div>
+          </div>
+
           <div class="actions">
             <button type="button" class="btn-cancel" (click)="showGrid()">Cancelar</button>
-            <button type="submit" class="btn-submit" [disabled]="!newProjectData.title">
+            <button type="submit" class="btn-submit" [disabled]="!newProjectData.title.trim()">
               Criar Projeto
             </button>
           </div>
@@ -82,11 +193,25 @@
       </div>
     </div>
 
-    <!--DETALHES DO PROJETO-->
     <div *ngIf="viewMode === 'details' && selectedProject" class="details-view">
       <aside class="sidebar">
-        <div class="book-cover">
-          <img [src]="selectedProject.CoverUrl || 'assets/default-cover.png'" alt="Capa do Livro" />
+        <div
+          class="book-cover"
+          [style.background-color]="selectedProject.CoverColor || '#6366f1'"
+          [class.has-image]="selectedProject.CoverImage"
+        >
+          <img
+            *ngIf="selectedProject.CoverImage"
+            [src]="getImageUrl(selectedProject.CoverImage)"
+            class="book-cover-img"
+            [alt]="selectedProject.Title"
+          />
+          <lucide-icon
+            *ngIf="!selectedProject.CoverImage"
+            [name]="getTypeIcon(selectedProject.ProjectType)"
+            [size]="56"
+            class="cover-type-icon"
+          ></lucide-icon>
         </div>
 
         <h2 class="project-title">{{ selectedProject.Title }}</h2>
@@ -94,13 +219,19 @@
 
         <div class="stats-container">
           <div class="stat-item">
+            <span class="stat-label">Tipo</span>
+            <span class="stat-value">{{ selectedProject.ProjectType || 'Livro' }}</span>
+          </div>
+          <div class="stat-item">
             <span class="stat-label">Colaboradores</span>
             <span class="stat-value">{{ selectedProject.Collaborators?.length || 0 }}</span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Criado em</span>
-            <span>{{
-              selectedProject.CreatedAt ? (selectedProject.CreatedAt | date: 'dd/MM/yyyy') : '---'
+            <span class="stat-value">{{
+              selectedProject.CreationDate
+                ? (selectedProject.CreationDate | date: 'dd/MM/yyyy')
+                : '---'
             }}</span>
           </div>
         </div>
@@ -109,27 +240,42 @@
       </aside>
 
       <section class="chapters-section">
-        <h3>Selecione o seu capítulo</h3>
+        <h3>Seleciona o teu capítulo</h3>
         <div class="chapters-list">
           <div class="chapter-item" *ngFor="let chapter of selectedProject.Chapters; let i = index">
             <span class="chapter-name">
-              Chapter {{ chapter.Number || i + 1 }} - "{{ chapter.Title }}"
+              Capítulo {{ chapter.Order || i + 1 }} — "{{ chapter.Title }}"
             </span>
+            <div class="chapter-meta" *ngIf="chapter.WordCount > 0">
+              <span class="chapter-words">{{ chapter.WordCount }} palavras</span>
+            </div>
             <div class="chapter-actions">
-              <button class="btn-icon edit" (click)="editChapter(chapter)">
-                <lucide-icon [name]="EditIcon" [size]="18"></lucide-icon>
+              <button class="btn-icon edit" (click)="editChapter(chapter)" title="Editar">
+                <lucide-icon [name]="EditIcon" [size]="16"></lucide-icon>
               </button>
-              <button class="btn-icon delete" (click)="deleteChapter(chapter)">
-                <lucide-icon [name]="TrashIcon" [size]="18"></lucide-icon>
+              <button class="btn-icon delete" (click)="deleteChapter(chapter)" title="Apagar">
+                <lucide-icon [name]="TrashIcon" [size]="16"></lucide-icon>
               </button>
             </div>
           </div>
+
+          <div *ngIf="!selectedProject.Chapters?.length" class="no-chapters">
+            Ainda não há capítulos. Cria o primeiro!
+          </div>
         </div>
-        <button class="btn-add-chapter" (click)="openAddChapterModal()">+</button>
+
+        <button class="btn-collab" (click)="openCollabModal()">
+          <lucide-icon [name]="UsersIcon" [size]="18"></lucide-icon>
+          Gerir Colaboradores
+        </button>
+
+        <button class="btn-add-chapter" (click)="openAddChapterModal()">
+          <lucide-icon [name]="PlusIcon" [size]="18"></lucide-icon>
+          Novo Capítulo
+        </button>
       </section>
     </div>
 
-    <!--novo chap-->
     <div class="modal-overlay" *ngIf="showChapterModal">
       <div class="modal-card">
         <div class="modal-header">
@@ -139,82 +285,517 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Nome do Capítulo</label>
-            <input type="text" [(ngModel)]="newChapterData.title" placeholder="Nome do capítulo" />
+            <input
+              type="text"
+              [(ngModel)]="newChapterData.title"
+              placeholder="Nome do capítulo"
+              autofocus
+            />
           </div>
           <div class="form-group">
             <label>Número do Capítulo</label>
-            <input
-              type="number"
-              [(ngModel)]="newChapterData.number"
-              placeholder="{{ selectedChapter.Order }}"
-            />
+            <input type="number" [(ngModel)]="newChapterData.number" min="1" />
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" (click)="closeChapterModal()">Cancelar</button>
-          <button class="btn-save" (click)="onSaveChapter()" [disabled]="!newChapterData.title">
+          <button
+            class="btn-save"
+            (click)="onSaveChapter()"
+            [disabled]="!newChapterData.title.trim()"
+          >
             Adicionar
           </button>
         </div>
       </div>
     </div>
 
-    <!--editor-->
+    <div class="modal-overlay" *ngIf="showCollabModal">
+      <div class="modal-card modal-collab">
+        <div class="modal-header">
+          <h3>Colaboradores</h3>
+          <button class="btn-icon" (click)="closeCollabModal()">
+            <lucide-icon [name]="CloseIcon" [size]="18"></lucide-icon>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="collab-tabs">
+          <button [class.active]="collabTab === 'invite'" (click)="collabTab = 'invite'">
+            Convidar
+          </button>
+          <button [class.active]="collabTab === 'members'" (click)="collabTab = 'members'">
+            Membros ({{ collaborators.length }})
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Tab: Convidar -->
+          <div *ngIf="collabTab === 'invite'">
+            <!-- Código de convite -->
+            <div class="invite-code-section">
+              <label>Código de Convite</label>
+              <p class="invite-hint">Partilha este código com quem queres convidar.</p>
+              <div class="invite-code-box">
+                <span class="invite-code">{{ selectedProject?.InviteCode }}</span>
+                <button class="btn-copy" (click)="copyInviteCode()" title="Copiar código">
+                  <lucide-icon [name]="CopyIcon" [size]="16"></lucide-icon>
+                </button>
+                <button
+                  class="btn-regen"
+                  (click)="regenerateCode()"
+                  *ngIf="isOwner()"
+                  title="Gerar novo código"
+                >
+                  <lucide-icon [name]="RefreshIcon" [size]="16"></lucide-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="invite-divider">ou adiciona por username</div>
+
+            <!-- Adicionar por username (só o dono) -->
+            <div *ngIf="isOwner()" class="invite-username-section">
+              <div class="invite-input-row">
+                <input
+                  type="text"
+                  [(ngModel)]="inviteUsername"
+                  placeholder="Username do utilizador"
+                  (keydown.enter)="addCollaboratorByUsername()"
+                />
+                <button
+                  class="btn-add-collab"
+                  (click)="addCollaboratorByUsername()"
+                  [disabled]="inviteLoading || !inviteUsername.trim()"
+                >
+                  {{ inviteLoading ? '...' : 'Adicionar' }}
+                </button>
+              </div>
+              <p class="invite-success" *ngIf="inviteSuccess">
+                <lucide-icon [name]="CheckIcon" [size]="14"></lucide-icon> {{ inviteSuccess }}
+              </p>
+              <p class="invite-error" *ngIf="inviteError">
+                <lucide-icon [name]="WarningIcon" [size]="14"></lucide-icon> {{ inviteError }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Tab: Membros -->
+          <div *ngIf="collabTab === 'members'">
+            <div *ngIf="collaborators.length === 0" class="no-collabs">
+              Ainda não há colaboradores neste projeto.
+            </div>
+            <div class="collab-list">
+              <div class="collab-item" *ngFor="let c of collaborators">
+                <div class="collab-avatar-sm" [style.background-color]="'#6366f1'">
+                  {{ c.Username?.charAt(0).toUpperCase() }}
+                </div>
+                <div class="collab-info">
+                  <span class="collab-name">{{ c.Username }}</span>
+                  <span class="collab-role">{{ c.Role }}</span>
+                </div>
+                <button
+                  class="btn-icon delete"
+                  (click)="removeCollaborator(c)"
+                  *ngIf="isOwner()"
+                  title="Remover"
+                >
+                  <lucide-icon [name]="TrashIcon" [size]="15"></lucide-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" *ngIf="showJoinModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Entrar num Projeto</h3>
+          <p>Introduz o código de convite que recebeste.</p>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Código de Convite</label>
+            <input
+              type="text"
+              [(ngModel)]="joinCode"
+              placeholder="Ex: AB3X7KPQ"
+              (keydown.enter)="joinProjectByCode()"
+              style="text-transform: uppercase; letter-spacing: 4px; font-size: 1.1rem"
+            />
+            <p class="invite-error" *ngIf="joinError">
+              <lucide-icon [name]="WarningIcon" [size]="14"></lucide-icon> {{ joinError }}
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeJoinModal()">Cancelar</button>
+          <button
+            class="btn-save"
+            (click)="joinProjectByCode()"
+            [disabled]="joinLoading || !joinCode.trim()"
+          >
+            {{ joinLoading ? 'A entrar...' : 'Entrar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor -->
     <div
       *ngIf="viewMode === 'editor' && selectedChapter"
       class="zen-editor"
       [class.sidebar-open]="isSideBarOpen"
+      [class.ai-panel-open]="showAiPanel"
     >
-      <!--navbar -->
+      <!-- Toolbar -->
       <header class="zen-toolbar">
         <div class="left-actions">
-          <button class="btn-exit" (click)="viewMode = 'details'">X</button>
-          <button class="btn-toggle-sidebar" (click)="toggleSidebar()">E</button>
-          <span class="chapter-title"
-            >Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}</span
-          >
-        </div>
-        <div class="format-tools">
-          <button class="btn-tool">B</button>
-          <button class="btn-tool italic">I</button>
-          <button class="btn-tool underline">U</button>
-        </div>
-        <div class="right-actions">
-          <span class="word-count">{{ wordCount }} palavras</span>
-          <span class="save-status" [class.saved]="isSaved">
-            {{ isSaved ? 'saved' : 'saving...' }}
+          <button class="btn-exit" (click)="showGrid()" title="Fechar editor">
+            <lucide-icon [name]="CloseIcon" [size]="20"></lucide-icon>
+          </button>
+          <button class="btn-toggle-sidebar" (click)="toggleSidebar()" title="Capítulos">
+            <lucide-icon [name]="SidebarIcon" [size]="20"></lucide-icon>
+          </button>
+          <span class="chapter-title">
+            Capítulo {{ selectedChapter.Order }}: {{ selectedChapter.Title }}
           </span>
-          <button class="btn-save-zen" (click)="saveChapterContent()">Guardar</button>
+        </div>
+
+        <!-- Ferramentas de formatação -->
+        <div class="format-tools">
+          <select class="font-size-select" (change)="format('fontSize', $any($event.target).value)">
+            <option value="">Tamanho</option>
+            <option value="3">Normal</option>
+            <option value="5">Grande</option>
+            <option value="7">Título</option>
+          </select>
+
+          <div class="tools-divider"></div>
+
+          <button class="btn-tool" [class.active]="isBold" (click)="format('bold')">
+            <lucide-icon [name]="BoldIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool" [class.active]="isItalic" (click)="format('italic')">
+            <lucide-icon [name]="ItalicIcon" [size]="16"></lucide-icon>
+          </button>
+
+          <div class="tools-divider"></div>
+
+          <button class="btn-tool" (click)="format('justifyLeft')" title="Alinhar à esquerda">
+            <lucide-icon [name]="AlignLeftIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool" (click)="format('justifyCenter')" title="Centrar">
+            <lucide-icon [name]="AlignCenterIcon" [size]="16"></lucide-icon>
+          </button>
+          <button class="btn-tool" (click)="format('justifyRight')" title="Alinhar à direita">
+            <lucide-icon [name]="AlignRightIcon" [size]="16"></lucide-icon>
+          </button>
+
+          <div class="tools-divider"></div>
+
+          <button class="btn-tool" (click)="triggerChapterImageUpload()" title="Inserir imagem">
+            <lucide-icon [name]="ImageIcon" [size]="16"></lucide-icon>
+          </button>
+          <input
+            type="file"
+            id="chapterImageInput"
+            accept="image/*"
+            (change)="onChapterImageSelected($event)"
+            hidden
+          />
+        </div>
+
+        <div class="right-actions">
+          <!-- colaboradores online -->
+          <div class="collab-presence" *ngIf="activeCollaborators.length > 0">
+            <div
+              class="collab-avatar"
+              *ngFor="let collab of activeCollaborators"
+              [style.background-color]="collab.color"
+              [title]="collab.username + ' está a editar'"
+            >
+              {{ collab.username.charAt(0).toUpperCase() }}
+            </div>
+            <span class="collab-count"> {{ activeCollaborators.length }} online </span>
+          </div>
+
+          <!-- status -->
+          <div
+            class="collab-status"
+            [class.connected]="isCollabConnected"
+            [title]="isCollabConnected ? 'Colaboração ativa' : 'Modo offline'"
+          >
+            <span class="status-dot"></span>
+          </div>
+
+          <button class="btn-ai-toggle" (click)="toggleAiPanel()" [class.active]="showAiPanel">
+            <lucide-icon [name]="SparklesIcon" [size]="18"></lucide-icon>
+            <span>IA</span>
+          </button>
+
+          <div class="editor-stats">
+            <span class="word-count">{{ wordCount }} palavras</span>
+            <span class="save-status" [class.saved]="isSaved">
+              <lucide-icon *ngIf="isSaved" [name]="CheckIcon" [size]="12"></lucide-icon>
+              {{ isSaved ? 'guardado' : '...' }}
+            </span>
+          </div>
+
+          <div class="export-wrapper">
+            <button
+              class="btn-export"
+              (click)="toggleExportMenu()"
+              [class.active]="showExportMenu"
+              title="Exportar capítulo"
+            >
+              <lucide-icon [name]="DownloadIcon" [size]="16"></lucide-icon>
+              Exportar
+            </button>
+
+            <div class="export-menu" *ngIf="showExportMenu">
+              <button (click)="exportAsTxt()">
+                <lucide-icon [name]="FileTextIcon" [size]="15"></lucide-icon>
+                <div class="export-option-info">
+                  <span>Texto (.txt)</span>
+                  <small>Texto simples sem formatação</small>
+                </div>
+              </button>
+              <button (click)="exportAsPdf()">
+                <lucide-icon [name]="FileIcon" [size]="15"></lucide-icon>
+                <div class="export-option-info">
+                  <span>PDF (.pdf)</span>
+                  <small>Documento formatado para impressão</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <button class="btn-save-zen" (click)="saveChapterContent()">
+            <lucide-icon [name]="SaveIcon" [size]="16"></lucide-icon>
+            Guardar
+          </button>
         </div>
       </header>
+
       <div class="editor-container">
-        <!--mega sidebar moderna type stuff-->
+        <!-- Sidebar com lista de capítulos e atividade de collabs -->
+        <div class="typing-bar" *ngIf="typingUsers.length > 0">
+          <div class="typing-user" *ngFor="let user of typingUsers">
+            <div class="typing-avatar" [style.background-color]="user.color">
+              {{ user.username.charAt(0).toUpperCase() }}
+            </div>
+            <span class="typing-name" [style.color]="user.color">{{ user.username }}</span>
+            <span class="typing-label">está a escrever</span>
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
         <aside class="zen-sidebar">
           <h3>Capítulos</h3>
           <ul class="zen-chapters-list">
             <li
-              *ngFor="let chap of selectedProject.Chapters"
-              [class.active]="chap.Id === selectedChapter.Id"
+              *ngFor="let chap of selectedProject?.Chapters"
+              [class.active]="(chap.Id ?? chap.id) === (selectedChapter.Id ?? selectedChapter.id)"
               (click)="editChapter(chap)"
             >
+              <span class="chap-order">{{ chap.Order }}.</span>
               {{ chap.Title }}
             </li>
           </ul>
         </aside>
-        <!-- Área da Folha de Papel -->
+
+        <!-- Folha de papel -->
         <main class="zen-main">
           <div class="paper-sheet">
             <div class="paper-divider"></div>
-            <textarea
+            <div
+              #richEditor
               class="paper-content"
-              [(ngModel)]="selectedChapter.Content"
-              (input)="onContentChange()"
-              placeholder="..."
-              spellcheck="false"
-            >
-            </textarea>
+              contenteditable="true"
+              (input)="syncEditorContent()"
+              (keyup)="updateFormatState()"
+              (mouseup)="updateFormatState()"
+              spellcheck="true"
+            ></div>
           </div>
         </main>
+
+        <!-- AI Assistant Panel -->
+        <aside class="ai-panel" *ngIf="showAiPanel">
+          <div class="ai-panel-header">
+            <h3>Assistente IA</h3>
+            <button class="btn-close-ai" (click)="toggleAiPanel()">
+              <lucide-icon [name]="CloseIcon" [size]="16"></lucide-icon>
+            </button>
+          </div>
+
+          <div class="ai-panel-content">
+            <div class="ai-actions">
+              <button
+                class="btn-ai-action"
+                (click)="analyzeCurrentChapter()"
+                [disabled]="aiLoading"
+              >
+                <lucide-icon [name]="SparklesIcon" [size]="16"></lucide-icon>
+                Analisar Texto
+              </button>
+
+              <div class="ai-improvement-select" *ngIf="!aiLoading">
+                <label>Melhoria:</label>
+                <select [(ngModel)]="aiImprovementType">
+                  <option value="grammar">Gramática</option>
+                  <option value="vocabulary">Vocabulário</option>
+                  <option value="style">Estilo</option>
+                </select>
+                <button
+                  class="btn-ai-action"
+                  (click)="improveCurrentChapter()"
+                  [disabled]="aiLoading"
+                >
+                  <lucide-icon [name]="EditIcon" [size]="16"></lucide-icon>
+                  Melhorar
+                </button>
+              </div>
+            </div>
+
+            <div class="ai-loading" *ngIf="aiLoading">
+              <div class="spinner"></div>
+              <p>A processar...</p>
+            </div>
+
+            <div class="ai-results" *ngIf="aiAnalysisResult && !aiLoading">
+              <h4>Análise:</h4>
+              <div class="result-content">
+                <p><strong>Emoção:</strong> {{ aiAnalysisResult.predominantEmotion }}</p>
+                <p><strong>Nível:</strong> {{ aiAnalysisResult.readingLevel }}</p>
+                <p><strong>Palavras:</strong> {{ aiAnalysisResult.wordCount }}</p>
+                <p><strong>Tempo:</strong> {{ aiAnalysisResult.readingTimeMinutes }} min</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Toast container global -->
+      <div class="toast-container">
+        <div
+          *ngFor="let toast of toasts$ | async"
+          class="toast toast-{{ toast.type }}"
+          (click)="toastService.dismiss(toast.id)"
+        >
+          <span>{{ toast.message }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!--Settings-->
+    <div *ngIf="viewMode === 'settings'" class="settings-view">
+      <div class="settings-card">
+        <div class="settings-header">
+          <h2>Definições de Conta</h2>
+          <p>Gere as tuas informações pessoais e preferências.</p>
+        </div>
+
+        <div class="settings-body">
+          <!-- Foto de perfil -->
+          <div class="settings-section">
+            <label class="section-label">Foto de Perfil</label>
+            <div class="profile-setup">
+              <div class="avatar-wrapper">
+                <img
+                  [src]="newAvatarUrl || 'assets/default-avatar.png'"
+                  class="main-avatar"
+                  alt="Foto de perfil"
+                />
+                <label for="avatar-upload" class="avatar-edit-btn" title="Alterar Foto">
+                  <lucide-icon [name]="EditIcon" [size]="14"></lucide-icon>
+                </label>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  (change)="onProfilePictureSelected($event)"
+                  hidden
+                />
+              </div>
+              <div class="profile-info">
+                <p class="profile-username">{{ username }}</p>
+                <p class="profile-hint">Clica na foto para alterar</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Username -->
+          <div class="settings-section">
+            <label class="section-label">Nome de Utilizador</label>
+            <div class="form-group">
+              <input
+                type="text"
+                [(ngModel)]="editUserData.username"
+                placeholder="Teu username"
+                class="settings-input"
+              />
+            </div>
+          </div>
+
+          <!-- Temas -->
+          <div class="settings-section">
+            <label class="section-label">Tema da Interface</label>
+            <div class="theme-grid">
+              <button
+                (click)="setTheme('modern-light')"
+                [class.active]="currentTheme === 'modern-light'"
+              >
+                <div class="theme-preview light"></div>
+                <span>Modern Light</span>
+              </button>
+              <button
+                (click)="setTheme('dark-theme')"
+                [class.active]="currentTheme === 'dark-theme'"
+              >
+                <div class="theme-preview dark"></div>
+                <span>Modern Dark</span>
+              </button>
+              <button
+                (click)="setTheme('retro-light')"
+                [class.active]="currentTheme === 'retro-light'"
+              >
+                <div class="theme-preview retro"></div>
+                <span>Windows 98</span>
+              </button>
+              <button
+                (click)="setTheme('retro-dark')"
+                [class.active]="currentTheme === 'retro-dark'"
+              >
+                <div class="theme-preview terminal"></div>
+                <span>Terminal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="settings-actions">
+            <button
+              class="btn-save-main"
+              (click)="updateUserProfile()"
+              [disabled]="!hasProfileChanges() || !editUserData.username"
+            >
+              <lucide-icon [name]="SaveIcon" [size]="18"></lucide-icon>
+              Guardar Alterações
+            </button>
+            <button class="btn-logout-outline" (click)="onLogout()">
+              <lucide-icon [name]="LogoutIcon" [size]="18"></lucide-icon>
+              Terminar Sessão
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-footer">
+          <button class="btn-link" (click)="showGrid()">← Voltar ao Dashboard</button>
+        </div>
       </div>
     </div>
   </main>

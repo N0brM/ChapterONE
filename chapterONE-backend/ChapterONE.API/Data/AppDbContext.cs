@@ -12,6 +12,7 @@ namespace ChapterONE.API.Data
         public DbSet<Project> Projects { get; set; }
         public DbSet<Chapter> Chapters { get; set; }
         public DbSet<ProjectCollaborator> ProjectCollaborators { get; set; }
+        public DbSet<Reference> References { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
